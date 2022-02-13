@@ -1,5 +1,5 @@
 <script setup>
-// const counter = useState('counter', () => Math.round(Math.random() * 1000))
+import Metamask from '../components/Metamask'
 const counter = useCookie('counter')
 counter.value = counter.value || Math.round(Math.random() * 1000)
 </script>
@@ -8,6 +8,7 @@ counter.value = counter.value || Math.round(Math.random() * 1000)
 .container
   .row
     .col
+      metamask
     .col
       h1 Counter: {{ counter || '-' }}
       .btn-group(role="group" aria-label="Basic mixed styles example")
