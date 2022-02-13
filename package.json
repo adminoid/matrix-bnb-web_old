@@ -6,6 +6,14 @@
     "start": "node .output/server/index.mjs"
   },
   "devDependencies": {
-    "nuxt3": "latest"
+    "nuxt3": "latest",
+    "postcss-import": "^14.0.2",
+    "pug": "^3.0.2",
+    "pug-plain-loader": "^1.1.0",
+    "sass": "^1.49.7",
+    "sass-loader": "10"
+  },
+  "dependencies": {
+    "bootstrap": "^5.1.3"
   }
 }

@@ -1,6 +1,4 @@
-# Nuxt 3 Minimal Starter
-
-We recommend to look at the [documentation](https://v3.nuxtjs.org).
+# Matrix-web
 
 ## Setup
 
@@ -25,5 +23,3 @@ Build the application for production:
 ```bash
 yarn build
 ```
-
-Checkout the [deployment documentation](https://v3.nuxtjs.org/docs/deployment).
