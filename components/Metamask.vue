@@ -1,24 +1,21 @@
 <template lang="pug">
-pre {{ bc }}
+pre {{ reactiveVar }}
 </template>
 
 <script lang="ts">
-import { defineComponent } from "#imports"
-import { useBlockchain, makeBlockchainProps } from "~/composables/useBlockchain"
+import useMetamask from "~/composables/useMetamask"
 
 export default defineComponent({
-  props: {
-    ...makeBlockchainProps(),
-  },
-  setup(props) {
-    // Get color & size classes from composition definitions
-    const bc = useBlockchain(props);
+  setup() {
+    const { connectWallet, reactiveVar } = useMetamask()
+    connectWallet()
 
-    console.info('setup()')
-    console.log(bc)
+    setTimeout(() => {
+      reactiveVar.value = 'after all'
+    }, 10000)
 
     return {
-      bc,
+      reactiveVar,
     }
   },
 })
