@@ -1,21 +1,25 @@
 <template lang="pug">
-pre {{ reactiveVar }}
+button(
+  type="button"
+  class="btn btn-warning"
+  @click="checkMetamask"
+) Check Metamask
 </template>
 
 <script lang="ts">
-import useMetamask from "~/composables/useMetamask"
+import { useMetamask } from "~/composables/useMetamask"
 
 export default defineComponent({
   setup() {
-    const { connectWallet, reactiveVar } = useMetamask()
-    connectWallet()
+    const { checkMetamask } = useMetamask()
+    const { $on } = useNuxtApp()
 
-    setTimeout(() => {
-      reactiveVar.value = 'after all'
-    }, 10000)
+    $on('error', error => {
+      console.info(error)
+    })
 
     return {
-      reactiveVar,
+      checkMetamask,
     }
   },
 })
