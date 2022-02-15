@@ -1,31 +1,60 @@
-// import Web3 from 'web3'
-import { getGlobalThis } from "@vue/shared";
+import { getGlobalThis } from "@vue/shared"
 
-// todo:
-//  - create state for metamask then export that
+const globalThis = getGlobalThis()
 
 const throwError = (msg: string) => {
-    // msg = "aaa\nfff"
-    // if (typeof msg === 'string' && msg.indexOf("\n") !== -1) {
-    //     let lines = msg.split('\n')
-    //     lines.splice(0, 1)
-    //     msg = JSON.parse(lines.join('\n')).message
-    // }
-
-    const { $emit } = useNuxtApp()
-    $emit('error', msg)
+    useNuxtApp().$emit('error', msg)
 }
 
-// let web3Instance = reactive<any>({})
-
 const checkMetamask = () => {
-    if (!getGlobalThis().web3) throwError('Установите metamask!')
-    else throwError('Metamask установлен!')
+    if (!globalThis.web3) {
+        throwError('Установите metamask!')
+        return false
+    } else return true
+}
+
+const setBSCNetwork = async () => {
+    const config = useRuntimeConfig()
+
+    try {
+        // check if the chain to connect to is installed
+        await globalThis.ethereum.request({
+            method: 'wallet_switchEthereumChain',
+            params: [{ chainId: config.CHAIN_ID }],
+        })
+    } catch (e) {
+        // This error code indicates that the chain has not been added to MetaMask
+        // if it is not, then install it into the user MetaMask
+        if (e.code === 4902) {
+            try {
+                await globalThis.ethereum.request({
+                    method: 'wallet_addEthereumChain',
+                    params: [
+                        {
+                            chainId: config.CHAIN_ID,
+                            rpcUrl: config.RPC_URL,
+                        },
+                    ],
+                })
+            } catch (e) {
+                throwError(e.message)
+            }
+        }
+        throwError(e.message)
+    }
 }
 
 export function useMetamask() {
+    const isOk = ref(false)
+
+    onMounted(() => {
+        isOk.value = checkMetamask()
+    })
+
     return {
+        isOk,
         checkMetamask,
+        setBSCNetwork,
     }
 }
 
