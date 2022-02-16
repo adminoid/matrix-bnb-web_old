@@ -22,7 +22,7 @@ export default defineComponent({
   emits: ['error'],
 
   setup() {
-    const { isOk, checkMetamask, setBSCNetwork } = useMetamask()
+    const { isOk, setBSCNetwork } = useMetamask()
     const { $on } = useNuxtApp()
     const error = ref('')
 

@@ -1,16 +1,10 @@
 import { getGlobalThis } from "@vue/shared"
 
 const globalThis = getGlobalThis()
+const Ethereum = globalThis.ethereum
 
 const throwError = (msg: string) => {
     useNuxtApp().$emit('error', msg)
-}
-
-const checkMetamask = () => {
-    if (!globalThis.web3) {
-        throwError('Установите metamask!')
-        return false
-    } else return true
 }
 
 const setBSCNetwork = async () => {
@@ -47,13 +41,25 @@ const setBSCNetwork = async () => {
 export function useMetamask() {
     const isOk = ref(false)
 
-    onMounted(() => {
-        isOk.value = checkMetamask()
+    onMounted(async () => {
+
+        console.info('onMounted')
+
+        isOk.value = false
+        if (globalThis.web3) {
+            isOk.value = true
+        } else {
+            throwError('Установите metamask!')
+            return
+        }
+
+        Ethereum.request({ method: 'eth_requestAccounts' }).catch(e => {
+            throwError(e.message)
+        })
     })
 
     return {
         isOk,
-        checkMetamask,
         setBSCNetwork,
     }
 }

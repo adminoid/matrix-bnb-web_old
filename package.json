@@ -16,7 +16,6 @@
   },
   "dependencies": {
     "bootstrap": "^5.1.3",
-    "mitt": "^3.0.0",
-    "web3": "^1.7.0"
+    "mitt": "^3.0.0"
   }
 }
