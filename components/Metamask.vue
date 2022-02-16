@@ -5,7 +5,7 @@
       button(
         type="button"
         class="btn btn-warning"
-        @click="prepare"
+        @click="prepareMetamask"
       ) Check Metamask
   .row(v-if="!!error")
     .col
@@ -22,7 +22,7 @@ export default defineComponent({
   emits: ['error'],
 
   setup() {
-    const { isOk, setBSCNetwork } = useMetamask()
+    const { isOk, prepareMetamask } = useMetamask()
     const { $on } = useNuxtApp()
     const error = ref('')
 
@@ -30,14 +30,10 @@ export default defineComponent({
       error.value = msg
     })
 
-    const prepare = async () => {
-      await setBSCNetwork()
-    }
-
     return {
       isOk,
       error,
-      prepare,
+      prepareMetamask,
     }
   },
 })
