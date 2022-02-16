@@ -6,7 +6,14 @@
         type="button"
         class="btn btn-warning"
         @click="prepareMetamask"
-      ) Check Metamask
+      ) Prepare Metamask
+  .row
+    .col
+      button(
+        type="button"
+        class="btn btn-warning"
+        @click="runContract"
+      ) Make contract
   .row(v-if="!!error")
     .col
       .alert.alert-danger(role="alert") {{ error }}
@@ -23,8 +30,11 @@ export default defineComponent({
 
   setup() {
     const { isOk, prepareMetamask } = useMetamask()
-    const { $on } = useNuxtApp()
+    const { $on, $makeContract } = useNuxtApp()
     const error = ref('')
+    const runContract = () => {
+      $makeContract()
+    }
 
     $on('error', (msg: string) => {
       error.value = msg
@@ -34,6 +44,7 @@ export default defineComponent({
       isOk,
       error,
       prepareMetamask,
+      runContract,
     }
   },
 })
