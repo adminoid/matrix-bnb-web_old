@@ -13,7 +13,7 @@
         type="button"
         class="btn btn-warning"
         @click="runContract"
-      ) Make contract
+      ) Deposit 1 BUSD
   .row(v-if="!!error")
     .col
       .alert.alert-danger(role="alert") {{ error }}
@@ -23,17 +23,31 @@
 </template>
 
 <script lang="ts">
-import { useMetamask } from "~/composables/useMetamask"
 
 export default defineComponent({
-  emits: ['error'],
-
   setup() {
-    const { isOk, prepareMetamask } = useMetamask()
-    const { $on, $makeContract } = useNuxtApp()
+    const { $on, $SC } = useNuxtApp()
     const error = ref('')
+    const isOk = ref(false)
+
+    onMounted(async () => {
+      isOk.value = false
+      if ($SC.Web3) {
+        isOk.value = true
+      } else {
+        error.value = 'Установите metamask!'
+      }
+    })
+
     const runContract = () => {
-      $makeContract()
+      const config = useRuntimeConfig()
+      const Contract = $SC.getContract(config)
+      console.log(Contract)
+      $SC.depositBUSD()
+    }
+
+    const prepareMetamask = async () => {
+      await $SC.prepareMetamask()
     }
 
     $on('error', (msg: string) => {
@@ -43,8 +57,8 @@ export default defineComponent({
     return {
       isOk,
       error,
-      prepareMetamask,
       runContract,
+      prepareMetamask,
     }
   },
 })
