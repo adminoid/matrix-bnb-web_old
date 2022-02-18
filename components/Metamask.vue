@@ -9,17 +9,21 @@
       ) Prepare Metamask
   .row
     .col
+      .mb-3
+        label.form-label(for='busd-amount') BUSD Amount
+        input#busd-amount.form-control(type='text' v-model="busdAmount")
       button(
         type="button"
         class="btn btn-warning"
-        @click="runContract"
-      ) Deposit 1 BUSD
+        @click="depositBUSD"
+      ) Deposit BUSD
   .row(v-if="!!error")
     .col
       .alert.alert-danger(role="alert") {{ error }}
   .row
     .col
       pre {{ isOk }}
+      pre {{ accounts }}
 </template>
 
 <script lang="ts">
@@ -29,6 +33,8 @@ export default defineComponent({
     const { $on, $SC } = useNuxtApp()
     const error = ref('')
     const isOk = ref(false)
+    const busdAmount = ref(1)
+    // const usdtAmount = ref(0)
 
     onMounted(async () => {
       isOk.value = false
@@ -37,17 +43,22 @@ export default defineComponent({
       } else {
         error.value = 'Установите metamask!'
       }
+
+      // not working yet
+      $SC.Ethereum.on('connect', () => {
+        console.info('CoNneCteD')
+      })
     })
 
-    const runContract = () => {
-      const config = useRuntimeConfig()
-      const Contract = $SC.getContract(config)
-      console.log(Contract)
-      $SC.depositBUSD()
+    const depositBUSD = async () => {
+      console.info('depositBUSD')
+      const resp = await $SC.depositBUSD(busdAmount.value)
+      console.log(resp)
     }
 
+    let accounts = ref()
     const prepareMetamask = async () => {
-      await $SC.prepareMetamask()
+      accounts.value = await $SC.prepareMetamask()
     }
 
     $on('error', (msg: string) => {
@@ -57,8 +68,10 @@ export default defineComponent({
     return {
       isOk,
       error,
-      runContract,
+      depositBUSD,
       prepareMetamask,
+      accounts,
+      busdAmount,
     }
   },
 })
