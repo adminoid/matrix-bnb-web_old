@@ -51,9 +51,10 @@ export default defineComponent({
     })
 
     const depositBUSD = async () => {
-      console.info('depositBUSD')
-      const resp = await $SC.depositBUSD(busdAmount.value)
-      console.log(resp)
+      console.info('1. depositBUSD')
+      // const resp = await $SC.depositBUSD(busdAmount.value)
+      // console.log(resp)
+      await $SC.depositBUSD(busdAmount.value)
     }
 
     let accounts = ref()

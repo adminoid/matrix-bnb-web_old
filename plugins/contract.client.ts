@@ -1,5 +1,4 @@
 import { defineNuxtPlugin } from '#app'
-// import { ethers } from 'ethers'
 import Web3 from 'web3/dist/web3.min.js'
 import Matrix from '~/contract/Matrix.json'
 import BUSDAbi from '~/contract/BUSD.abi.json'
@@ -8,13 +7,8 @@ import { getGlobalThis } from "@vue/shared"
 
 const globalThis = getGlobalThis()
 const Ethereum = globalThis.ethereum
-let accounts = false
-
-console.log(Web3.givenProvider)
 
 const web3 = new Web3(Web3.givenProvider || 'ws://localhost:8546')
-
-console.log(web3)
 
 class Config {
     private _instance
@@ -26,24 +20,13 @@ class Config {
     }
 }
 
-class Provider {
-    private _instance
-    constructor() {
-        if (!Provider._instance) {
-            Provider._instance = new ethers.providers.JsonRpcProvider()
-        }
-        return Provider._instance
-    }
-}
-
 class MatrixContract {
     private _instance
     constructor() {
         if (!MatrixContract._instance) {
-            MatrixContract._instance = new ethers.Contract(
-                new Config().CONTRACT_ADDRESS,
+            MatrixContract._instance = new web3.eth.Contract(
                 Matrix.abi,
-                new Provider(),
+                new Config().CONTRACT_ADDRESS,
             )
         }
         return MatrixContract._instance
@@ -54,10 +37,9 @@ class BUSDContract {
     private _instance
     constructor() {
         if (!BUSDContract._instance) {
-            BUSDContract._instance = new ethers.Contract(
-                new Config().BUSD_ADDRESS,
+            BUSDContract._instance = new web3.eth.Contract(
                 BUSDAbi,
-                new Provider(),
+                new Config().BUSD_ADDRESS,
             )
         }
         return BUSDContract._instance
@@ -68,10 +50,9 @@ class USDTContract {
     private _instance
     constructor() {
         if (!USDTContract._instance) {
-            USDTContract._instance = new ethers.Contract(
-                new Config().USDT_ADDRESS,
+            BUSDContract._instance = new web3.eth.Contract(
                 USDTAbi,
-                new Provider(),
+                new Config().USDT_ADDRESS,
             )
         }
         return USDTContract._instance
@@ -83,7 +64,6 @@ const prepareMetamask = async () => {
     try {
         try {
             await setBSCNetwork()
-            accounts = await Ethereum.request({ method: 'eth_requestAccounts' })
         } catch (e) {
             throwError(e.message)
         }
@@ -139,12 +119,9 @@ const throwError = (msg: string) => {
 }
 
 const depositBUSD = async amount => {
-    // console.log(new Provider() === new Provider())
     // console.log(new MatrixContract() === new MatrixContract())
     // console.log(new BUSDContract() === new BUSDContract())
     // console.log(new USDTContract() === new USDTContract())
-
-    console.log(accounts[0], amount)
 
     // try {
     //     await addBUSDToken()
@@ -156,14 +133,36 @@ const depositBUSD = async amount => {
     const BUSDContractInstance = new BUSDContract()
     const MatrixContractInstance = new MatrixContract()
 
-    console.log(MatrixContractInstance)
+    // console.log(MatrixContractInstance)
 
-    BUSDContractInstance.approve(MatrixContractInstance.address, amount).send({
-            from: accounts[0]
-        },
-        function(err, transactionHash) {
-            console.log(transactionHash)
-        })
+    // const accounts = web3.eth.getAccounts()
+    const accounts = await Ethereum.request({ method: 'eth_requestAccounts' })
+
+    console.log(accounts[0], amount)
+
+    try {
+        const txHash = await BUSDContractInstance.methods.approve(
+            MatrixContractInstance._address,
+            amount
+        ).send({ from: accounts[0] })
+
+        console.log(txHash)
+
+        try {
+            const resp = await MatrixContractInstance.methods.depositBUSD(amount).send({
+                from: accounts[0]
+            })
+
+            console.log(resp)
+
+        } catch (e) {
+            throwError(e.message)
+        }
+
+    } catch (e) {
+        console.error(e)
+        throwError(e.message)
+    }
 }
 
 const addBUSDToken = async () => {
