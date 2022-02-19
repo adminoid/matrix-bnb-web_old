@@ -118,11 +118,7 @@ const throwError = (msg: string) => {
     useNuxtApp().$emit('error', msg)
 }
 
-const depositBUSD = async amount => {
-    // console.log(new MatrixContract() === new MatrixContract())
-    // console.log(new BUSDContract() === new BUSDContract())
-    // console.log(new USDTContract() === new USDTContract())
-
+const depositBUSD = async _amount => {
     // try {
     //     await addBUSDToken()
     // } catch (e) {
@@ -130,15 +126,22 @@ const depositBUSD = async amount => {
     // }
     // console.info('BUSD token added')
 
+    // console.info(_amount)
+    const amount = Number(_amount) * Math.pow(10, 18)
+    // console.log(amount)
+
     const BUSDContractInstance = new BUSDContract()
     const MatrixContractInstance = new MatrixContract()
 
-    // console.log(MatrixContractInstance)
+    // console.info(new Config().CONTRACT_ADDRESS)
+    // console.log(MatrixContractInstance._address)
 
     // const accounts = web3.eth.getAccounts()
     const accounts = await Ethereum.request({ method: 'eth_requestAccounts' })
 
     console.log(accounts[0], amount)
+
+    // return;
 
     try {
         const txHash = await BUSDContractInstance.methods.approve(

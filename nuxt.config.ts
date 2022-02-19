@@ -18,7 +18,7 @@ export default defineNuxtConfig({
         //     process.env.RPC_URL :
         //     'https://data-seed-prebsc-2-s3.binance.org:8545/',
         CHAIN_NAME: 'Smart Chain - testnet',
-        CONTRACT_ADDRESS: '0x403437EC55dA5d2aE6f7dE4e0E97BFb8f5CD548B',
+        CONTRACT_ADDRESS: '0x2636FdEa1D061Bc13C2fa51CEf2366bF291aa6a5',
         BUSD_ADDRESS: '0xeD24FC36d5Ee211Ea25A80239Fb8C4Cfd80f12Ee',
         BUSD_SYMBOL: 'BUSD',
         BUSD_IMAGE: 'https://cryptologos.cc/logos/binance-usd-busd-logo.svg',
