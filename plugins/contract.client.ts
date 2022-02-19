@@ -1,5 +1,6 @@
 import { defineNuxtPlugin } from '#app'
-import { ethers } from 'ethers'
+// import { ethers } from 'ethers'
+import Web3 from 'web3/dist/web3.min.js'
 import Matrix from '~/contract/Matrix.json'
 import BUSDAbi from '~/contract/BUSD.abi.json'
 import USDTAbi from '~/contract/USDT.abi.json'
@@ -8,6 +9,12 @@ import { getGlobalThis } from "@vue/shared"
 const globalThis = getGlobalThis()
 const Ethereum = globalThis.ethereum
 let accounts = false
+
+console.log(Web3.givenProvider)
+
+const web3 = new Web3(Web3.givenProvider || 'ws://localhost:8546')
+
+console.log(web3)
 
 class Config {
     private _instance
