@@ -7,10 +7,7 @@ import { getGlobalThis } from "@vue/shared"
 
 const globalThis = getGlobalThis()
 const Ethereum = globalThis.ethereum
-
 const web3 = new Web3(Web3.givenProvider || 'ws://localhost:8546')
-
-// console.log(JSON.parse(USDTAbi))
 
 class Config {
     private _instance
@@ -64,13 +61,12 @@ class USDTContract {
 // Check Metamask, get accounts and setBSCNetwork (with addNetwork fallback)
 const prepareMetamask = async () => {
     try {
-        try {
-            await setBSCNetwork()
-        } catch (e) {
-            throwError(e.message)
-        }
+        emitDisabled('prepareMetamask', true)
+        await setBSCNetwork()
     } catch (e) {
         throwError(e.message)
+    } finally {
+        emitDisabled('prepareMetamask', false)
     }
 }
 
@@ -120,16 +116,31 @@ const throwError = (msg: string) => {
     useNuxtApp().$emit('error', msg)
 }
 
+const emitDisabled = (cause: string, disabled: boolean) => {
+    console.info('emitDisabled')
+    console.log(cause, disabled)
+
+    useNuxtApp().$emit('disabled', {
+        cause,
+        disabled,
+    })
+}
+
 const depositBUSD = async _amount => {
     const amount = web3.utils.toBN(Number(_amount) * Math.pow(10, 18))
     const BUSDContractInstance = new BUSDContract()
     const MatrixContractInstance = new MatrixContract()
     const accounts = await Ethereum.request({ method: 'eth_requestAccounts' })
     try {
+        emitDisabled('depositBUSD', true)
+        // todo: check allowance before approve
         const txHash = await BUSDContractInstance.methods.approve(
             MatrixContractInstance._address,
             amount
         ).send({ from: accounts[0] })
+
+        console.log(txHash)
+
         try {
             const resp = await MatrixContractInstance.methods.depositBUSD(amount).send({
                 from: accounts[0]
@@ -140,11 +151,15 @@ const depositBUSD = async _amount => {
 
         } catch (e) {
             throwError(e.message)
+        } finally {
+            emitDisabled('depositBUSD', false)
         }
 
     } catch (e) {
         console.error(e)
         throwError(e.message)
+    } finally {
+        emitDisabled('depositBUSD', false)
     }
 }
 
@@ -154,6 +169,8 @@ const depositUSDT = async _amount => {
     const MatrixContractInstance = new MatrixContract()
     const accounts = await Ethereum.request({ method: 'eth_requestAccounts' })
     try {
+        emitDisabled('depositUSDT', true)
+        // todo: check allowance before approve
         const txHash = await USDTContractInstance.methods.approve(
             MatrixContractInstance._address,
             amount
@@ -168,11 +185,15 @@ const depositUSDT = async _amount => {
 
         } catch (e) {
             throwError(e.message)
+        } finally {
+            emitDisabled('depositUSDT', false)
         }
 
     } catch (e) {
         console.error(e)
         throwError(e.message)
+    } finally {
+        emitDisabled('depositUSDT', false)
     }
 }
 
@@ -190,7 +211,6 @@ const addBUSDToken = async () => {
                 },
             },
         })
-        throwError('addBUSDToken is ok')
     } catch (e) {
         throwError(e.message)
     }
@@ -210,7 +230,6 @@ const addUSDTToken = async () => {
                 },
             },
         })
-        throwError('addUSDTToken is ok')
     } catch (e) {
         throwError(e.message)
     }

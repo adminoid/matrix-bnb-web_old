@@ -1,5 +1,17 @@
 <template lang="pug">
 .container
+  .row(v-if="disabled.disabled")
+    .col
+      .d-flex.align-items-center
+        strong {{ disabled.cause }}
+        .spinner-border.ms-auto.text-primary(role="status")
+
+  .row(v-if="disabled.disabled")
+    .col
+      .spinner-border.text-primary(role="status")
+        span.visually-hidden Loading...
+      .alert.alert-secondary(role="alert") {{ disabled.cause }}
+
   .row.frame
     .col(
       class="d-flex flex-column"
@@ -9,10 +21,12 @@
         type="button"
         class="btn btn-warning"
         @click="prepareMetamask"
+        :disabled="disabled.disabled"
       ) Prepare Metamask
       .form-text Add bsc network (if not exist)
         br
         | and set that active
+
   .row
     .col(
       class="d-flex flex-column"
@@ -22,6 +36,7 @@
         type="button"
         class="btn btn-secondary"
         @click="addBUSDToken"
+        :disabled="disabled.disabled"
       ) Add BUSD to Metamask
     .col(
       class="d-flex flex-column"
@@ -31,7 +46,9 @@
         type="button"
         class="btn btn-secondary"
         @click="addUSDTToken"
+        :disabled="disabled.disabled"
       ) Add USDT to Metamask
+
   .row.frame
     .col(
       class="d-flex flex-column"
@@ -40,13 +57,19 @@
       .mb-3.row
         label.col-sm-4.col-form-label(for='busd-amount') BUSD Amount
         .col-sm-8
-          input#busd-amount.form-control(type='text' v-model="busdAmount")
+          input#busd-amount.form-control(
+            type='text'
+            v-model="busdAmount"
+            :disabled="disabled.disabled"
+          )
 
       button(
         type="button"
         class="btn btn-warning"
         @click="depositBUSD"
+        :disabled="disabled.disabled"
       ) Deposit BUSD
+
   .row.frame
     .col(
       class="d-flex flex-column"
@@ -55,18 +78,17 @@
       .mb-3.row
         label.col-sm-4.col-form-label(for='usdt-amount') USDT Amount
         .col-sm-8
-          input#usdt-amount.form-control(type='text' v-model="usdtAmount")
+          input#usdt-amount.form-control(
+            type='text'
+            v-model="usdtAmount"
+            :disabled="disabled.disabled"
+          )
       button(
         type="button"
         class="btn btn-warning"
         @click="depositUSDT"
+        :disabled="disabled.disabled"
       ) Deposit USDT
-  .row(v-if="!!error")
-    .col(
-      class="d-flex flex-column"
-      +" justify-content-center align-items-center"
-    )
-      .alert.alert-danger(role="alert") {{ error }}
 </template>
 
 <script lang="ts">
@@ -76,16 +98,18 @@ export default defineComponent({
     const error = ref('')
     const busdAmount = ref(1)
     const usdtAmount = ref(1)
+    let disabled = ref({})
 
     onMounted(async () => {
       if (!$SC.Web3) {
         error.value = 'Установите metamask!'
+        setTimeout(() => (error.value = ''), 5000)
       }
 
       // not working yet
-      $SC.Ethereum.on('connect', () => {
-        console.info('CoNneCteD')
-      })
+      // $SC.Ethereum.on('connect', () => {
+      //   console.info('CoNneCteD')
+      // })
     })
 
     const prepareMetamask = async () =>
@@ -101,6 +125,12 @@ export default defineComponent({
 
     $on('error', (msg: string) => {
       error.value = msg
+      setTimeout(() => (error.value = ''), 5000)
+    })
+
+    $on('disabled', (payload: { cause: string, disabled: boolean }) => {
+      console.info('on disabled', payload)
+      disabled.value = payload
     })
 
     return {
@@ -112,6 +142,7 @@ export default defineComponent({
       addUSDTToken,
       depositBUSD,
       depositUSDT,
+      disabled,
     }
   },
 })
