@@ -3,14 +3,8 @@
   .row(v-if="disabled.disabled")
     .col
       .d-flex.align-items-center
-        strong {{ disabled.cause }}
+        strong Awaiting {{ disabled.cause }}...
         .spinner-border.ms-auto.text-primary(role="status")
-
-  .row(v-if="disabled.disabled")
-    .col
-      .spinner-border.text-primary(role="status")
-        span.visually-hidden Loading...
-      .alert.alert-secondary(role="alert") {{ disabled.cause }}
 
   .row.frame
     .col(
@@ -89,6 +83,30 @@
         @click="depositUSDT"
         :disabled="disabled.disabled"
       ) Deposit USDT
+
+  .row.frame
+    .col(
+      class="d-flex flex-column"
+      +" justify-content-center align-items-center"
+    )
+      .mb-3.row
+        label.col-sm-4.col-form-label(for='withdraw-amount') Withdraw amount
+        .col-sm-7
+          .input-group
+            input#withdraw-amount.form-control.col-4(
+              type='text'
+              v-model="withdrawAmount"
+              :disabled="disabled.disabled"
+            )
+            select#select-currency.form-select.col-2(v-model="currency")
+              option(value="BUSD") BUSD
+              option(value='USDT') USDT
+      button(
+        type="button"
+        class="btn btn-warning"
+        @click="withdraw"
+        :disabled="disabled.disabled"
+      ) Withdraw
 </template>
 
 <script lang="ts">
@@ -96,9 +114,11 @@ export default defineComponent({
   setup() {
     const { $on, $SC } = useNuxtApp()
     const error = ref('')
-    const busdAmount = ref(1)
-    const usdtAmount = ref(1)
+    const busdAmount = ref(0.1)
+    const usdtAmount = ref(0.1)
     let disabled = ref({})
+    const currency = ref('USDT')
+    const withdrawAmount = ref(0.1)
 
     onMounted(async () => {
       if (!$SC.Web3) {
@@ -122,6 +142,8 @@ export default defineComponent({
         (await $SC.depositBUSD(busdAmount.value))
     const depositUSDT = async () =>
         (await $SC.depositUSDT(usdtAmount.value))
+    const withdraw = async () =>
+        ($SC.withdraw(withdrawAmount.value, currency.value))
 
     $on('error', (msg: string) => {
       error.value = msg
@@ -143,6 +165,9 @@ export default defineComponent({
       depositBUSD,
       depositUSDT,
       disabled,
+      withdrawAmount,
+      withdraw,
+      currency,
     }
   },
 })
@@ -157,4 +182,6 @@ export default defineComponent({
   border: 2px solid lightgrey
   border-radius: 1em
   padding: 1em
+#select-currency
+  width: 43px
 </style>

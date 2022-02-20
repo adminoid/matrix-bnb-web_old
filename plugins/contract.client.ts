@@ -163,6 +163,27 @@ const depositBUSD = async _amount => {
     }
 }
 
+const withdraw = async (_amount, currency) => {
+    const amount = web3.utils.toBN(Number(_amount) * Math.pow(10, 18))
+    const MatrixContractInstance = new MatrixContract()
+    const accounts = await Ethereum.request({ method: 'eth_requestAccounts' })
+
+    try {
+        emitDisabled(`withdraw${currency}`, true)
+        const resp = await MatrixContractInstance.methods[`withdraw${currency}`](amount).send({
+            from: accounts[0]
+        })
+
+        // todo: listen to events and show status
+        console.log(resp)
+
+    } catch (e) {
+        throwError(e.message)
+    } finally {
+        emitDisabled(`withdraw${currency}`, false)
+    }
+}
+
 const depositUSDT = async _amount => {
     const amount = web3.utils.toBN(Number(_amount) * Math.pow(10, 18))
     const USDTContractInstance = new USDTContract()
@@ -244,6 +265,7 @@ export default defineNuxtPlugin(() => {
                 throwError,
                 depositBUSD,
                 depositUSDT,
+                withdraw,
                 prepareMetamask,
                 addBUSDToken,
                 addUSDTToken,
