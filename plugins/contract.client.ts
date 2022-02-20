@@ -10,6 +10,8 @@ const Ethereum = globalThis.ethereum
 
 const web3 = new Web3(Web3.givenProvider || 'ws://localhost:8546')
 
+// console.log(JSON.parse(USDTAbi))
+
 class Config {
     private _instance
     constructor() {
@@ -38,7 +40,7 @@ class BUSDContract {
     constructor() {
         if (!BUSDContract._instance) {
             BUSDContract._instance = new web3.eth.Contract(
-                BUSDAbi,
+                JSON.parse(BUSDAbi),
                 new Config().BUSD_ADDRESS,
             )
         }
@@ -51,7 +53,7 @@ class USDTContract {
     constructor() {
         if (!USDTContract._instance) {
             BUSDContract._instance = new web3.eth.Contract(
-                USDTAbi,
+                JSON.parse(USDTAbi),
                 new Config().USDT_ADDRESS,
             )
         }
