@@ -119,13 +119,6 @@ const throwError = (msg: string) => {
 }
 
 const depositBUSD = async _amount => {
-    // try {
-    //     await addBUSDToken()
-    // } catch (e) {
-    //     throwError(e.message)
-    // }
-    // console.info('BUSD token added')
-
     // console.info(_amount)
     const amount = Number(_amount) * Math.pow(10, 18)
     // console.log(amount)
@@ -156,6 +149,7 @@ const depositBUSD = async _amount => {
                 from: accounts[0]
             })
 
+            // todo: listen to events and show status
             console.log(resp)
 
         } catch (e) {
@@ -182,29 +176,32 @@ const addBUSDToken = async () => {
                 },
             },
         })
+        throwError('addBUSDToken is ok')
     } catch (e) {
+        console.log(e)
         throwError(e.message)
     }
 }
 
-// const addUSDTToken = async () => {
-//     try {
-//         await ethereum.request({
-//             method: 'wallet_watchAsset',
-//             params: {
-//                 type: 'ERC20',
-//                 options: {
-//                     address: new Config().USDT_ADDRESS,
-//                     symbol: new Config().USDT_SYMBOL,
-//                     image: new Config().USDT_IMAGE,
-//                     decimals: new Config().DECIMALS,
-//                 },
-//             },
-//         })
-//     } catch (e) {
-//         throwError(e.message)
-//     }
-// }
+const addUSDTToken = async () => {
+    try {
+        await Ethereum.request({
+            method: 'wallet_watchAsset',
+            params: {
+                type: 'ERC20',
+                options: {
+                    address: new Config().USDT_ADDRESS,
+                    symbol: new Config().USDT_SYMBOL,
+                    image: new Config().USDT_IMAGE,
+                    decimals: new Config().DECIMALS,
+                },
+            },
+        })
+        throwError('addUSDTToken is ok')
+    } catch (e) {
+        throwError(e.message)
+    }
+}
 
 export default defineNuxtPlugin(() => {
     return {
@@ -215,6 +212,8 @@ export default defineNuxtPlugin(() => {
                 throwError,
                 depositBUSD,
                 prepareMetamask,
+                addBUSDToken,
+                addUSDTToken,
             },
         }
     }

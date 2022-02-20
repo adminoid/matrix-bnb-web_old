@@ -1,29 +1,58 @@
 <template lang="pug">
 .container
-  .row
-    .col
-      button(
+  .row.frame
+    .col(
+      class="d-flex flex-column"
+      +" justify-content-center align-items-center"
+    )
+      button.mb-3(
         type="button"
         class="btn btn-warning"
         @click="prepareMetamask"
       ) Prepare Metamask
+      .form-text Add bsc network (if not exist)
+        br
+        | and set that active
   .row
-    .col
-      .mb-3
-        label.form-label(for='busd-amount') BUSD Amount
-        input#busd-amount.form-control(type='text' v-model="busdAmount")
+    .col(
+      class="d-flex flex-column"
+      +" justify-content-center align-items-center"
+    )
+      button(
+        type="button"
+        class="btn btn-secondary"
+        @click="addBUSDToken"
+      ) Add BUSD to Metamask
+    .col(
+      class="d-flex flex-column"
+      +" justify-content-center align-items-center"
+    )
+      button(
+        type="button"
+        class="btn btn-secondary"
+        @click="addUSDTToken"
+      ) Add USDT to Metamask
+  .row.frame
+    .col(
+      class="d-flex flex-column"
+      +" justify-content-center align-items-center"
+    )
+      .mb-3.row
+        label.col-sm-4.col-form-label(for='busd-amount') BUSD Amount
+        .col-sm-8
+          input#busd-amount.form-control(type='text' v-model="busdAmount")
+
       button(
         type="button"
         class="btn btn-warning"
         @click="depositBUSD"
       ) Deposit BUSD
   .row(v-if="!!error")
-    .col
+    .col(
+      class="d-flex flex-column"
+      +" justify-content-center align-items-center"
+    )
       .alert.alert-danger(role="alert") {{ error }}
-  .row
-    .col
-      pre {{ isOk }}
-      pre {{ accounts }}
 </template>
 
 <script lang="ts">
@@ -32,15 +61,10 @@ export default defineComponent({
   setup() {
     const { $on, $SC } = useNuxtApp()
     const error = ref('')
-    const isOk = ref(false)
     const busdAmount = ref(1)
-    // const usdtAmount = ref(0)
 
     onMounted(async () => {
-      isOk.value = false
-      if ($SC.Web3) {
-        isOk.value = true
-      } else {
+      if (!$SC.Web3) {
         error.value = 'Установите metamask!'
       }
 
@@ -50,37 +74,38 @@ export default defineComponent({
       })
     })
 
-    const depositBUSD = async () => {
-      console.info('1. depositBUSD')
-      // const resp = await $SC.depositBUSD(busdAmount.value)
-      // console.log(resp)
-      await $SC.depositBUSD(busdAmount.value)
-    }
-
-    let accounts = ref()
-    const prepareMetamask = async () => {
-      accounts.value = await $SC.prepareMetamask()
-    }
+    const prepareMetamask = async () =>
+        (await $SC.prepareMetamask())
+    const addBUSDToken = async () =>
+        (await $SC.addBUSDToken())
+    const addUSDTToken = async () =>
+        (await $SC.addUSDTToken())
+    const depositBUSD = async () =>
+        (await $SC.depositBUSD(busdAmount.value))
 
     $on('error', (msg: string) => {
       error.value = msg
     })
 
     return {
-      isOk,
       error,
-      depositBUSD,
-      prepareMetamask,
-      accounts,
       busdAmount,
+      prepareMetamask,
+      addBUSDToken,
+      addUSDTToken,
+      depositBUSD,
     }
   },
 })
 </script>
 
-<style lang="sass">
+<style lang="sass" scoped>
 .container
   padding: 1em
 .row
   margin-bottom: 2em
+.frame
+  border: 2px solid lightgrey
+  border-radius: 1em
+  padding: 1em
 </style>
