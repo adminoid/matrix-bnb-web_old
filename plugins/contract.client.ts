@@ -119,33 +119,45 @@ const throwError = (msg: string) => {
 }
 
 const depositBUSD = async _amount => {
-    // console.info(_amount)
-    const amount = Number(_amount) * Math.pow(10, 18)
-    // console.log(amount)
-
+    const amount = web3.utils.toBN(Number(_amount) * Math.pow(10, 18))
     const BUSDContractInstance = new BUSDContract()
     const MatrixContractInstance = new MatrixContract()
-
-    // console.info(new Config().CONTRACT_ADDRESS)
-    // console.log(MatrixContractInstance._address)
-
-    // const accounts = web3.eth.getAccounts()
     const accounts = await Ethereum.request({ method: 'eth_requestAccounts' })
-
-    console.log(accounts[0], amount)
-
-    // return;
-
     try {
         const txHash = await BUSDContractInstance.methods.approve(
             MatrixContractInstance._address,
             amount
         ).send({ from: accounts[0] })
-
-        console.log(txHash)
-
         try {
             const resp = await MatrixContractInstance.methods.depositBUSD(amount).send({
+                from: accounts[0]
+            })
+
+            // todo: listen to events and show status
+            console.log(resp)
+
+        } catch (e) {
+            throwError(e.message)
+        }
+
+    } catch (e) {
+        console.error(e)
+        throwError(e.message)
+    }
+}
+
+const depositUSDT = async _amount => {
+    const amount = web3.utils.toBN(Number(_amount) * Math.pow(10, 18))
+    const USDTContractInstance = new USDTContract()
+    const MatrixContractInstance = new MatrixContract()
+    const accounts = await Ethereum.request({ method: 'eth_requestAccounts' })
+    try {
+        const txHash = await USDTContractInstance.methods.approve(
+            MatrixContractInstance._address,
+            amount
+        ).send({ from: accounts[0] })
+        try {
+            const resp = await MatrixContractInstance.methods.depositUSDT(amount).send({
                 from: accounts[0]
             })
 
@@ -178,7 +190,6 @@ const addBUSDToken = async () => {
         })
         throwError('addBUSDToken is ok')
     } catch (e) {
-        console.log(e)
         throwError(e.message)
     }
 }
@@ -211,6 +222,7 @@ export default defineNuxtPlugin(() => {
                 Ethereum,
                 throwError,
                 depositBUSD,
+                depositUSDT,
                 prepareMetamask,
                 addBUSDToken,
                 addUSDTToken,

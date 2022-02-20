@@ -47,6 +47,20 @@
         class="btn btn-warning"
         @click="depositBUSD"
       ) Deposit BUSD
+  .row.frame
+    .col(
+      class="d-flex flex-column"
+      +" justify-content-center align-items-center"
+    )
+      .mb-3.row
+        label.col-sm-4.col-form-label(for='usdt-amount') USDT Amount
+        .col-sm-8
+          input#usdt-amount.form-control(type='text' v-model="usdtAmount")
+      button(
+        type="button"
+        class="btn btn-warning"
+        @click="depositUSDT"
+      ) Deposit USDT
   .row(v-if="!!error")
     .col(
       class="d-flex flex-column"
@@ -56,12 +70,12 @@
 </template>
 
 <script lang="ts">
-
 export default defineComponent({
   setup() {
     const { $on, $SC } = useNuxtApp()
     const error = ref('')
     const busdAmount = ref(1)
+    const usdtAmount = ref(1)
 
     onMounted(async () => {
       if (!$SC.Web3) {
@@ -82,6 +96,8 @@ export default defineComponent({
         (await $SC.addUSDTToken())
     const depositBUSD = async () =>
         (await $SC.depositBUSD(busdAmount.value))
+    const depositUSDT = async () =>
+        (await $SC.depositUSDT(usdtAmount.value))
 
     $on('error', (msg: string) => {
       error.value = msg
@@ -90,10 +106,12 @@ export default defineComponent({
     return {
       error,
       busdAmount,
+      usdtAmount,
       prepareMetamask,
       addBUSDToken,
       addUSDTToken,
       depositBUSD,
+      depositUSDT,
     }
   },
 })
