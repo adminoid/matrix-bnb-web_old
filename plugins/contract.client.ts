@@ -52,7 +52,7 @@ class USDTContract {
     private _instance
     constructor() {
         if (!USDTContract._instance) {
-            BUSDContract._instance = new web3.eth.Contract(
+            USDTContract._instance = new web3.eth.Contract(
                 JSON.parse(USDTAbi),
                 new Config().USDT_ADDRESS,
             )
