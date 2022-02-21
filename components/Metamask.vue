@@ -53,40 +53,23 @@
       +" justify-content-center align-items-center"
     )
       .mb-3.row
-        label.col-sm-4.col-form-label(for='busd-amount') BUSD Amount
-        .col-sm-8
-          input#busd-amount.form-control(
-            type='text'
-            v-model="busdAmount"
-            :disabled="disabled.disabled"
-          )
-
+        label.col-sm-4.col-form-label(for='deposit-amount') Deposit amount
+        .col-sm-7
+          .input-group
+            input#deposit-amount.form-control.col-4(
+              type='text'
+              v-model="depositAmount"
+              :disabled="disabled.disabled"
+            )
+            select#select-currency.form-select.col-2(v-model="depositCurrency")
+              option(value="BUSD") BUSD
+              option(value='USDT') USDT
       button(
         type="button"
         class="btn btn-warning"
-        @click="depositBUSD"
+        @click="deposit"
         :disabled="disabled.disabled"
-      ) Deposit BUSD
-
-  .row.frame
-    .col(
-      class="d-flex flex-column"
-      +" justify-content-center align-items-center"
-    )
-      .mb-3.row
-        label.col-sm-4.col-form-label(for='usdt-amount') USDT Amount
-        .col-sm-8
-          input#usdt-amount.form-control(
-            type='text'
-            v-model="usdtAmount"
-            :disabled="disabled.disabled"
-          )
-      button(
-        type="button"
-        class="btn btn-warning"
-        @click="depositUSDT"
-        :disabled="disabled.disabled"
-      ) Deposit USDT
+      ) Deposit
 
   .row.frame
     .col(
@@ -102,7 +85,7 @@
               v-model="withdrawAmount"
               :disabled="disabled.disabled"
             )
-            select#select-currency.form-select.col-2(v-model="currency")
+            select#select-currency.form-select.col-2(v-model="withdrawCurrency")
               option(value="BUSD") BUSD
               option(value='USDT') USDT
       button(
@@ -118,23 +101,17 @@ export default defineComponent({
   setup() {
     const { $on, $SC } = useNuxtApp()
     const error = ref('')
-    const busdAmount = ref(0.1)
-    const usdtAmount = ref(0.1)
     let disabled = ref({})
-    // const currency = ref('USDT')
-    const currency = ref('BUSD')
-    const withdrawAmount = ref(100)
+    const depositCurrency = ref('BUSD')
+    const depositAmount = ref(0.1)
+    const withdrawCurrency = ref('USDT')
+    const withdrawAmount = ref(0.1)
 
     onMounted(async () => {
       if (!$SC.Web3) {
         error.value = 'Установите metamask!'
-        setTimeout(() => (error.value = ''), 5000)
+        setTimeout(() => (error.value = ''), 10000)
       }
-
-      // not working yet
-      // $SC.Ethereum.on('connect', () => {
-      //   console.info('CoNneCteD')
-      // })
     })
 
     const prepareMetamask = async () =>
@@ -143,20 +120,14 @@ export default defineComponent({
         (await $SC.addBUSDToken())
     const addUSDTToken = async () =>
         (await $SC.addUSDTToken())
-    const depositBUSD = async () =>
-        (await $SC.depositBUSD(busdAmount.value))
-    const depositUSDT = async () =>
-        (await $SC.depositUSDT(usdtAmount.value))
+    const deposit = async () =>
+        (await $SC.deposit(depositAmount.value, depositCurrency.value))
     const withdraw = async () =>
-        ($SC.withdraw(withdrawAmount.value, currency.value))
+        (await $SC.withdraw(withdrawAmount.value, withdrawCurrency.value))
 
     $on('error', (msg: string) => {
-
-      console.info('error event catched')
-      console.warn(msg)
-
       error.value = msg
-      setTimeout(() => (error.value = ''), 5000)
+      setTimeout(() => (error.value = ''), 10000)
     })
 
     $on('disabled', (payload: { cause: string, disabled: boolean }) => {
@@ -166,17 +137,16 @@ export default defineComponent({
 
     return {
       error,
-      busdAmount,
-      usdtAmount,
       prepareMetamask,
       addBUSDToken,
       addUSDTToken,
-      depositBUSD,
-      depositUSDT,
       disabled,
       withdrawAmount,
+      withdrawCurrency,
+      depositAmount,
+      depositCurrency,
+      deposit,
       withdraw,
-      currency,
     }
   },
 })

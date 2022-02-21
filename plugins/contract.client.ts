@@ -61,6 +61,12 @@ class USDTContract {
     }
 }
 
+const Contracts = {
+    Matrix: {},
+    BUSD: {},
+    USDT: {},
+}
+
 // Check Metamask, get accounts and setBSCNetwork (with addNetwork fallback)
 const prepareMetamask = async () => {
     try {
@@ -89,6 +95,8 @@ const setBSCNetwork = async () => {
             } catch (e) {
                 throwError(e.message)
             }
+        } else {
+            throwError(e.message)
         }
     }
 }
@@ -169,25 +177,50 @@ const addUSDTToken = async () => {
     }
 }
 
-const depositBUSD = async _amount => {
+const deposit = async (_amount, currency) => {
     const amount = web3.utils.toBN(Number(_amount) * Math.pow(10, 18))
     // web3.utils.toWei(1, 'ether')  // 1 ETH == 10^18 wei
-    const BUSDContractInstance = new BUSDContract()
-    const MatrixContractInstance = new MatrixContract()
     const accounts = await Ethereum.request({ method: 'eth_requestAccounts' })
     try {
-        emitDisabled('depositBUSD', true)
+        emitDisabled(`deposit${currency}`, true)
         // todo: check allowance before approve
-        const txHash = await BUSDContractInstance.methods.approve(
-            MatrixContractInstance._address,
-            amount
-        ).send({ from: accounts[0] })
 
-        console.log(txHash)
+        switch (currency) {
+            case 'BUSD':
+                Contracts.BUSD = new BUSDContract()
+                break
+            case 'USDT':
+                Contracts.USDT = new USDTContract()
+                break
+            default:
+                throwError(`Contract ${currency} is not supported`)
+                return
+        }
+
+        Contracts.Matrix = new MatrixContract()
+
+        const gas = await Contracts[currency].methods.approve(
+            Contracts['Matrix']._address,
+            amount
+        ).estimateGas({ from: accounts[0] })
+
+        const txHash = await Contracts[currency].methods.approve(
+            Contracts['Matrix']._address,
+            amount
+        ).send({
+            from: accounts[0],
+            gas,
+        })
 
         try {
-            const resp = await MatrixContractInstance.methods.depositBUSD(amount).send({
-                from: accounts[0]
+            const gas = await Contracts['Matrix']
+                .methods[`deposit${currency}`](amount)
+                .estimateGas({ from: accounts[0] })
+
+            const resp = await Contracts['Matrix']
+                .methods[`deposit${currency}`](amount).send({
+                from: accounts[0],
+                gas,
             })
 
             // todo: listen to events and show status
@@ -195,71 +228,36 @@ const depositBUSD = async _amount => {
 
         } catch (e) {
             throwError(e.message)
-        } finally {
-            emitDisabled('depositBUSD', false)
         }
 
     } catch (e) {
         throwError(e.message)
     } finally {
-        emitDisabled('depositBUSD', false)
-    }
-}
-
-const depositUSDT = async _amount => {
-    const amount = web3.utils.toBN(Number(_amount) * Math.pow(10, 18))
-    const USDTContractInstance = new USDTContract()
-    const MatrixContractInstance = new MatrixContract()
-    const accounts = await Ethereum.request({ method: 'eth_requestAccounts' })
-    try {
-        emitDisabled('depositUSDT', true)
-        // todo: check allowance before approve
-        const txHash = await USDTContractInstance.methods.approve(
-            MatrixContractInstance._address,
-            amount
-        ).send({ from: accounts[0] })
-        try {
-            const resp = await MatrixContractInstance.methods.depositUSDT(amount).send({
-                from: accounts[0]
-            })
-
-            // todo: listen to events and show status
-            console.log(resp)
-
-        } catch (e) {
-            throwError(e.message)
-        } finally {
-            emitDisabled('depositUSDT', false)
-        }
-
-    } catch (e) {
-        throwError(e.message)
-    } finally {
-        emitDisabled('depositUSDT', false)
+        emitDisabled(`deposit${currency}`, false)
     }
 }
 
 const withdraw = async (_amount, currency) => {
     const amount = web3.utils.toBN(Number(_amount) * Math.pow(10, 18))
-    const MatrixContractInstance = new MatrixContract()
     const accounts = await Ethereum.request({ method: 'eth_requestAccounts' })
-
     try {
         emitDisabled(`withdraw${currency}`, true)
 
-        const gas = await MatrixContractInstance
+        Contracts.Matrix = new MatrixContract()
+
+        const gas = await Contracts['Matrix']
             .methods[`withdraw${currency}`](amount)
             .estimateGas({ from: accounts[0] })
 
         try {
-            const resp = await MatrixContractInstance.methods[`withdraw${currency}`](amount).send({
+            const resp = await Contracts['Matrix'].methods[`withdraw${currency}`](amount).send({
                 from: accounts[0],
                 gas,
-            }, function (e, tHash){
+            }, function (e, txHash){
                 if (e) {
                     throwError(e.message)
                 } else {
-                    console.log(tHash)
+                    console.log(txHash)
                 }
             })
 
@@ -268,8 +266,6 @@ const withdraw = async (_amount, currency) => {
 
         } catch (e) {
             throwError(e.message)
-        } finally {
-            emitDisabled(`withdraw${currency}`, false)
         }
 
     } catch (e) {
@@ -286,12 +282,11 @@ export default defineNuxtPlugin(() => {
                 Web3: globalThis.web3,
                 Ethereum,
                 throwError,
-                depositBUSD,
-                depositUSDT,
-                withdraw,
                 prepareMetamask,
                 addBUSDToken,
                 addUSDTToken,
+                deposit,
+                withdraw,
             },
         }
     }
