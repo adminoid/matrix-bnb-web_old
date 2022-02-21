@@ -23,6 +23,7 @@ class MatrixContract {
     private _instance
     constructor() {
         if (!MatrixContract._instance) {
+            web3.eth.handleRevert = true
             MatrixContract._instance = new web3.eth.Contract(
                 Matrix.abi,
                 new Config().CONTRACT_ADDRESS,
@@ -36,6 +37,7 @@ class BUSDContract {
     private _instance
     constructor() {
         if (!BUSDContract._instance) {
+            web3.eth.handleRevert = true
             BUSDContract._instance = new web3.eth.Contract(
                 JSON.parse(BUSDAbi),
                 new Config().BUSD_ADDRESS,
@@ -49,6 +51,7 @@ class USDTContract {
     private _instance
     constructor() {
         if (!USDTContract._instance) {
+            web3.eth.handleRevert = true
             USDTContract._instance = new web3.eth.Contract(
                 JSON.parse(USDTAbi),
                 new Config().USDT_ADDRESS,
@@ -113,109 +116,19 @@ const addNetwork = async () => {
 }
 
 const throwError = (msg: string) => {
+    if (typeof msg === 'string' && msg.indexOf("\n") !== -1) {
+        let lines = msg.split('\n')
+        lines.splice(0, 1)
+        msg = JSON.parse(lines.join('\n')).message
+    }
     useNuxtApp().$emit('error', msg)
 }
 
 const emitDisabled = (cause: string, disabled: boolean) => {
-    console.info('emitDisabled')
-    console.log(cause, disabled)
-
     useNuxtApp().$emit('disabled', {
         cause,
         disabled,
     })
-}
-
-const depositBUSD = async _amount => {
-    const amount = web3.utils.toBN(Number(_amount) * Math.pow(10, 18))
-    const BUSDContractInstance = new BUSDContract()
-    const MatrixContractInstance = new MatrixContract()
-    const accounts = await Ethereum.request({ method: 'eth_requestAccounts' })
-    try {
-        emitDisabled('depositBUSD', true)
-        // todo: check allowance before approve
-        const txHash = await BUSDContractInstance.methods.approve(
-            MatrixContractInstance._address,
-            amount
-        ).send({ from: accounts[0] })
-
-        console.log(txHash)
-
-        try {
-            const resp = await MatrixContractInstance.methods.depositBUSD(amount).send({
-                from: accounts[0]
-            })
-
-            // todo: listen to events and show status
-            console.log(resp)
-
-        } catch (e) {
-            throwError(e.message)
-        } finally {
-            emitDisabled('depositBUSD', false)
-        }
-
-    } catch (e) {
-        console.error(e)
-        throwError(e.message)
-    } finally {
-        emitDisabled('depositBUSD', false)
-    }
-}
-
-const withdraw = async (_amount, currency) => {
-    const amount = web3.utils.toBN(Number(_amount) * Math.pow(10, 18))
-    const MatrixContractInstance = new MatrixContract()
-    const accounts = await Ethereum.request({ method: 'eth_requestAccounts' })
-
-    try {
-        emitDisabled(`withdraw${currency}`, true)
-        const resp = await MatrixContractInstance.methods[`withdraw${currency}`](amount).send({
-            from: accounts[0]
-        })
-
-        // todo: listen to events and show status
-        console.log(resp)
-
-    } catch (e) {
-        throwError(e.message)
-    } finally {
-        emitDisabled(`withdraw${currency}`, false)
-    }
-}
-
-const depositUSDT = async _amount => {
-    const amount = web3.utils.toBN(Number(_amount) * Math.pow(10, 18))
-    const USDTContractInstance = new USDTContract()
-    const MatrixContractInstance = new MatrixContract()
-    const accounts = await Ethereum.request({ method: 'eth_requestAccounts' })
-    try {
-        emitDisabled('depositUSDT', true)
-        // todo: check allowance before approve
-        const txHash = await USDTContractInstance.methods.approve(
-            MatrixContractInstance._address,
-            amount
-        ).send({ from: accounts[0] })
-        try {
-            const resp = await MatrixContractInstance.methods.depositUSDT(amount).send({
-                from: accounts[0]
-            })
-
-            // todo: listen to events and show status
-            console.log(resp)
-
-        } catch (e) {
-            throwError(e.message)
-        } finally {
-            emitDisabled('depositUSDT', false)
-        }
-
-    } catch (e) {
-        console.error(e)
-        throwError(e.message)
-    } finally {
-        emitDisabled('depositUSDT', false)
-    }
 }
 
 const addBUSDToken = async () => {
@@ -253,6 +166,116 @@ const addUSDTToken = async () => {
         })
     } catch (e) {
         throwError(e.message)
+    }
+}
+
+const depositBUSD = async _amount => {
+    const amount = web3.utils.toBN(Number(_amount) * Math.pow(10, 18))
+    // web3.utils.toWei(1, 'ether')  // 1 ETH == 10^18 wei
+    const BUSDContractInstance = new BUSDContract()
+    const MatrixContractInstance = new MatrixContract()
+    const accounts = await Ethereum.request({ method: 'eth_requestAccounts' })
+    try {
+        emitDisabled('depositBUSD', true)
+        // todo: check allowance before approve
+        const txHash = await BUSDContractInstance.methods.approve(
+            MatrixContractInstance._address,
+            amount
+        ).send({ from: accounts[0] })
+
+        console.log(txHash)
+
+        try {
+            const resp = await MatrixContractInstance.methods.depositBUSD(amount).send({
+                from: accounts[0]
+            })
+
+            // todo: listen to events and show status
+            console.log(resp)
+
+        } catch (e) {
+            throwError(e.message)
+        } finally {
+            emitDisabled('depositBUSD', false)
+        }
+
+    } catch (e) {
+        throwError(e.message)
+    } finally {
+        emitDisabled('depositBUSD', false)
+    }
+}
+
+const depositUSDT = async _amount => {
+    const amount = web3.utils.toBN(Number(_amount) * Math.pow(10, 18))
+    const USDTContractInstance = new USDTContract()
+    const MatrixContractInstance = new MatrixContract()
+    const accounts = await Ethereum.request({ method: 'eth_requestAccounts' })
+    try {
+        emitDisabled('depositUSDT', true)
+        // todo: check allowance before approve
+        const txHash = await USDTContractInstance.methods.approve(
+            MatrixContractInstance._address,
+            amount
+        ).send({ from: accounts[0] })
+        try {
+            const resp = await MatrixContractInstance.methods.depositUSDT(amount).send({
+                from: accounts[0]
+            })
+
+            // todo: listen to events and show status
+            console.log(resp)
+
+        } catch (e) {
+            throwError(e.message)
+        } finally {
+            emitDisabled('depositUSDT', false)
+        }
+
+    } catch (e) {
+        throwError(e.message)
+    } finally {
+        emitDisabled('depositUSDT', false)
+    }
+}
+
+const withdraw = async (_amount, currency) => {
+    const amount = web3.utils.toBN(Number(_amount) * Math.pow(10, 18))
+    const MatrixContractInstance = new MatrixContract()
+    const accounts = await Ethereum.request({ method: 'eth_requestAccounts' })
+
+    try {
+        emitDisabled(`withdraw${currency}`, true)
+
+        const gas = await MatrixContractInstance
+            .methods[`withdraw${currency}`](amount)
+            .estimateGas({ from: accounts[0] })
+
+        try {
+            const resp = await MatrixContractInstance.methods[`withdraw${currency}`](amount).send({
+                from: accounts[0],
+                gas,
+            }, function (e, tHash){
+                if (e) {
+                    throwError(e.message)
+                } else {
+                    console.log(tHash)
+                }
+            })
+
+            // todo: listen to events and show status
+            console.log(resp)
+
+        } catch (e) {
+            throwError(e.message)
+        } finally {
+            emitDisabled(`withdraw${currency}`, false)
+        }
+
+    } catch (e) {
+        throwError(e.message)
+    } finally {
+        emitDisabled(`withdraw${currency}`, false)
     }
 }
 

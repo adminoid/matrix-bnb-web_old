@@ -6,6 +6,10 @@
         strong Awaiting {{ disabled.cause }}...
         .spinner-border.ms-auto.text-primary(role="status")
 
+  .row(v-if="!!error")
+    .col
+      .alert.alert-danger {{ error }}
+
   .row.frame
     .col(
       class="d-flex flex-column"
@@ -117,8 +121,9 @@ export default defineComponent({
     const busdAmount = ref(0.1)
     const usdtAmount = ref(0.1)
     let disabled = ref({})
-    const currency = ref('USDT')
-    const withdrawAmount = ref(0.1)
+    // const currency = ref('USDT')
+    const currency = ref('BUSD')
+    const withdrawAmount = ref(100)
 
     onMounted(async () => {
       if (!$SC.Web3) {
@@ -146,6 +151,10 @@ export default defineComponent({
         ($SC.withdraw(withdrawAmount.value, currency.value))
 
     $on('error', (msg: string) => {
+
+      console.info('error event catched')
+      console.warn(msg)
+
       error.value = msg
       setTimeout(() => (error.value = ''), 5000)
     })
