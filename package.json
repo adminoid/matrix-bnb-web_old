@@ -7,7 +7,8 @@
   },
   "devDependencies": {
     "@nuxtjs/dotenv": "^1.4.1",
-    "nuxt3": "latest",
+    "cross-env": "^7.0.3",
+    "nuxt3": "^3.0.0-rc.13-27772354.a0a59e2",
     "postcss-import": "^14.0.2",
     "pug": "^3.0.2",
     "pug-plain-loader": "^1.1.0",

@@ -1,7 +1,6 @@
-<template>
-<div>
-  <NuxtPage />
-</div>
+<template lang="pug">
+.page-wrapper
+  NuxtPage
 </template>
 
 <style lang="sass">
