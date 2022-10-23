@@ -10,7 +10,18 @@ const Ethereum = globalThis.ethereum
 const web3 = new Web3(Web3.givenProvider || 'ws://localhost:8546')
 
 class Config {
-    private _instance
+    private static _instance: any
+    CONTRACT_ADDRESS: string;
+    BUSD_ADDRESS: string;
+    USDT_ADDRESS: string;
+    CHAIN_ID: string;
+    CHAIN_NAME: string;
+    RPC_URL: string;
+    BUSD_SYMBOL: string;
+    BUSD_IMAGE: string;
+    DECIMALS: string;
+    USDT_SYMBOL: string;
+    USDT_IMAGE: string;
     constructor() {
         if (!Config._instance) {
             Config._instance = useRuntimeConfig()
@@ -20,7 +31,7 @@ class Config {
 }
 
 class MatrixContract {
-    private _instance
+    private static _instance: any
     constructor() {
         if (!MatrixContract._instance) {
             web3.eth.handleRevert = true
@@ -34,7 +45,7 @@ class MatrixContract {
 }
 
 class BUSDContract {
-    private _instance
+    private static _instance: any
     constructor() {
         if (!BUSDContract._instance) {
             web3.eth.handleRevert = true
@@ -48,7 +59,7 @@ class BUSDContract {
 }
 
 class USDTContract {
-    private _instance
+    private static _instance: any
     constructor() {
         if (!USDTContract._instance) {
             web3.eth.handleRevert = true
@@ -62,7 +73,10 @@ class USDTContract {
 }
 
 const Contracts = {
-    Matrix: {},
+    Matrix: {
+        _address: '',
+        methods: Function,
+    },
     BUSD: {},
     USDT: {},
 }
@@ -197,6 +211,7 @@ const deposit = async (_amount, currency) => {
                 return
         }
 
+        // @ts-ignore
         Contracts.Matrix = new MatrixContract()
 
         const gas = await Contracts[currency].methods.approve(
@@ -243,6 +258,7 @@ const withdraw = async (_amount, currency) => {
     try {
         emitDisabled(`withdraw${currency}`, true)
 
+        // @ts-ignore
         Contracts.Matrix = new MatrixContract()
 
         const gas = await Contracts['Matrix']
