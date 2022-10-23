@@ -1,14 +1,17 @@
 {
   "private": true,
   "scripts": {
-    "dev": "nuxi dev",
-    "build": "nuxi build",
-    "start": "cross-env NUXT_HOST=0.0.0.0 NUXT_PORT=80 node .output/server/index.mjs"
+    "build": "nuxt build",
+    "dev": "nuxt dev",
+    "start": "cross-env NUXT_HOST=0.0.0.0 NUXT_PORT=80 node .output/server/index.mjs",
+    "generate": "nuxt generate",
+    "preview": "nuxt preview",
+    "postinstall": "nuxt prepare"
   },
   "devDependencies": {
     "@nuxtjs/dotenv": "^1.4.1",
     "cross-env": "^7.0.3",
-    "nuxt3": "^3.0.0-rc.13-27772354.a0a59e2",
+    "nuxt": "3.0.0-rc.12",
     "postcss-import": "^14.0.2",
     "pug": "^3.0.2",
     "pug-plain-loader": "^1.1.0",

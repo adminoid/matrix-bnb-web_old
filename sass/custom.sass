@@ -3,6 +3,13 @@
 
 // 1. Include functions first (so you can manipulate colors, SVGs, calc, etc)
 @import "node_modules/bootstrap/scss/_functions.scss"
+@import "node_modules/bootstrap/scss/_variables"
+@import "node_modules/bootstrap/scss/mixins"
+
+$tertiary: #3fb247
+$custom-theme-colors:map-merge($theme-colors, ("tertiary": $tertiary))
+$theme-colors: map-merge($theme-colors, $custom-theme-colors)
+$theme-colors-rgb: map-loop($theme-colors, to-rgb, "$value")
 
 // 2. Include any default variable overrides here
 // Default variable overrides
@@ -10,13 +17,14 @@
 //$body-color: #555
 
 // 3. Include remainder of required Bootstrap stylesheets
-@import "node_modules/bootstrap/scss/variables"
-@import "node_modules/bootstrap/scss/mixins"
 @import "node_modules/bootstrap/scss/root"
 
 // 4. Include any optional Bootstrap CSS as needed
-@import "node_modules/bootstrap/scss/utilities"
 @import "node_modules/bootstrap/scss/reboot"
+
+@import "node_modules/bootstrap/scss/maps"
+
+@import "node_modules/bootstrap/scss/utilities"
 @import "node_modules/bootstrap/scss/type"
 @import "node_modules/bootstrap/scss/images"
 @import "node_modules/bootstrap/scss/containers"
@@ -36,3 +44,5 @@
 // 6. Add additional custom code here
 //body
 //  background: aquamarine
+
+@import "node_modules/bootstrap/scss/maps"

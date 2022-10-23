@@ -1,4 +1,4 @@
-import { defineNuxtPlugin } from '#app'
+// import { defineNuxtPlugin } from "#app"
 import Web3 from 'web3/dist/web3.min.js'
 import Matrix from '~/contract/Matrix.json'
 import BUSDAbi from '~/contract/BUSD.abi.json'
