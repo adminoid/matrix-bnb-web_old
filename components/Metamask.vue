@@ -68,7 +68,17 @@
         .input-group
           input#user-matrix.form-control.col-4(
             type='text'
-            v-model="userCoreAddress"
+            v-model="userMatrixAddress"
+            :disabled="disabled.disabled"
+          )
+    .mb-3.row
+      .col.col-sm-3.mb-3
+        label.col-form-label(for='matrix-level') Matrix level
+      .col-sm-9.mb-3
+        .input-group
+          input#matrix-level.form-control.col-4(
+            type='text'
+            v-model="userMatrixLevel"
             :disabled="disabled.disabled"
           )
     .row
@@ -101,7 +111,7 @@
 
 <script lang="ts">
 
-const errorTimeout = 3000
+const errorTimeout = 5000
 export default defineComponent({
   setup() {
     const { $on, $SC } = useNuxtApp()
@@ -116,10 +126,12 @@ export default defineComponent({
       await $SC.getCoreUser(userCoreAddress.value)
     }
 
+    const userMatrixLevel = ref('')
     const userMatrixAddress = ref('')
     const getMatrixUser = async () => {
       console.log(typeof userMatrixAddress.value, userMatrixAddress.value)
-      await $SC.getMatrixUser(userMatrixAddress.value)
+      console.log(typeof userMatrixLevel.value, userMatrixLevel.value)
+      await $SC.getMatrixUser(userMatrixLevel.value, userMatrixAddress.value)
     }
 
     onMounted(async () => {
@@ -170,6 +182,7 @@ export default defineComponent({
       userCoreAddress,
       getCoreUser,
       userMatrixAddress,
+      userMatrixLevel,
       getMatrixUser,
     }
   },

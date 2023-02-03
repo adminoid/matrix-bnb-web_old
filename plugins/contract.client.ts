@@ -22,12 +22,12 @@ export default defineNuxtPlugin(() => {
             }
         }
         async connectAndGetWallet() {
-            console.info("before eth_requestAccounts")
+            // console.info("before eth_requestAccounts")
             const accounts = await this.Eth.request({ method: 'eth_requestAccounts' })
-            console.log(this.Eth)
+            // console.log(this.Eth)
             this.wallet = accounts[0]
-            console.info("after eth_requestAccounts")
-            console.log(this.wallet)
+            // console.info("after eth_requestAccounts")
+            // console.log(this.wallet)
         }
         async reconnectWallet() {
             console.info("reconnectWallet()...")
@@ -172,23 +172,29 @@ export default defineNuxtPlugin(() => {
             emitDisabled(`registerWhose`, true)
             // todo: check allowance before approve
             try {
+                // const value = await CoreContractInstance.methods.payUnit.send({
+                //     from: MSI.wallet,
+                // });
+                // CoreContractInstance.methods.payUnit().call().then(function (res) {console.log(res)})
 
-                // const contractAddress = new Config().CONTRACT_ADDRESS
+                // const value = await CoreContractInstance.payUnit()
+                await MSI.connectAndGetWallet()
+                console.warn("MSI.wallet 2", MSI.wallet)
+                const value = await CoreContractInstance.methods
+                    .payUnit()
+                    .call({
+                        from: MSI.wallet,
+                    });
 
-                // const gas = await CoreContractInstance
-                //     .methods.register(whose)
-                //     .estimateGas({
-                //         from: accounts[0],
-                //         value: 1000000,
-                //     })
-                // console.info("gas")
-                // console.log(gas)
-                // console.info("accounts[0]")
-                // console.log(accounts[0])
+                console.info("payUnit value:")
+                console.log(value)
+                console.log(value.toString())
+
+                // console.log(value)
                 const resp = await CoreContractInstance
                     .methods.register(whose).send({
                         from: MSI.wallet,
-                        gasLimit: "30000000",
+                        value,
                     })
                     // .methods.register(whose).send({
                     //     from: accounts[0],
@@ -214,6 +220,7 @@ export default defineNuxtPlugin(() => {
             emitDisabled(`sendBnb`, true)
             // todo: check allowance before approve
             try {
+                await MSI.connectAndGetWallet()
                 const resp = await MSI.web3.eth.sendTransaction({
                     from: MSI.wallet,
                     to: new Config().CONTRACT_ADDRESS,
@@ -237,13 +244,19 @@ export default defineNuxtPlugin(() => {
     const getCoreUser = async (userWallet) => {
         try {
             emitDisabled(`getCoreUser`, true)
+            await MSI.connectAndGetWallet()
+
+            console.info("core-----", MSI.wallet)
+
             const resp = await CoreContractInstance
                 .methods.getUserFromCore(userWallet)
                 .call({
                     from: MSI.wallet,
-                    to: new Config().CONTRACT_ADDRESS,
+                    // to: new Config().CONTRACT_ADDRESS,
                 })
+
             console.log(resp)
+
         } catch (e) {
             throwError(e.message)
         } finally {
@@ -251,14 +264,31 @@ export default defineNuxtPlugin(() => {
         }
     }
 
-    const getMatrixUser = async (userWallet) => {
+    const getMatrixUser = async (level, userWallet) => {
+        console.info("getMatrixUser()")
         try {
             emitDisabled(`getMatrixUser`, true)
             try {
-                const resp = await CoreContractInstance.methods.getUserFromMatrix(userWallet)
+                await MSI.connectAndGetWallet()
+
+                console.info("matrix-----", MSI.wallet)
+
+                console.info("level", level)
+                console.info("userWallet", userWallet)
+
+                const resp = await CoreContractInstance
+                    .methods.getUserFromMatrix(level, userWallet)
+                    .call({
+                        from: MSI.wallet,
+                        to: new Config().CONTRACT_ADDRESS,
+                    })
+
+                console.info("reSP:")
                 console.log(resp)
 
             } catch (e) {
+                console.warn("throwError(e.message)")
+                console.warn(e.message)
                 throwError(e.message)
             }
 
