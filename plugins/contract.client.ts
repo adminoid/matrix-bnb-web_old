@@ -5,9 +5,53 @@ import { getGlobalThis } from "@vue/shared"
 
 export default defineNuxtPlugin(() => {
 
-    const globalThis = getGlobalThis()
-    const Ethereum = globalThis.ethereum
-    const web3 = new Web3(Web3.givenProvider || 'ws://localhost:8546')
+    // globalThis.web3 = new Web3(Web3.givenProvider || 'ws://localhost:8546')
+    // globalThis.web3 = new Web3(Web3.givenProvider || 'ws://localhost:8545')
+
+    class MetamaskStuff {
+        Eth
+        wallet
+        web3
+        constructor() {
+            if (!this.Eth) {
+                const globalThis = getGlobalThis()
+                this.Eth = globalThis.ethereum
+            }
+            if (!this.web3) {
+                this.web3 = new Web3(this.Eth)
+            }
+        }
+        async connectAndGetWallet() {
+            console.info("before eth_requestAccounts")
+            const accounts = await this.Eth.request({ method: 'eth_requestAccounts' })
+            console.log(this.Eth)
+            this.wallet = accounts[0]
+            console.info("after eth_requestAccounts")
+            console.log(this.wallet)
+        }
+        async reconnectWallet() {
+            console.info("reconnectWallet()...")
+            // await this.Eth.request({
+            //     method: "eth_requestAccounts",
+            //     params: [{eth_accounts: {}}]
+            // })
+
+            const accounts = await this.Eth.request({
+                method: "wallet_requestPermissions",
+                params: [{
+                    eth_accounts: {}
+                }]
+            })
+
+            this.Eth.request({
+                method: 'eth_requestAccounts'
+            })
+
+            this.wallet = accounts[0]
+        }
+    }
+
+    const MSI = new MetamaskStuff()
 
     class Config {
         private static _instance: any
@@ -28,8 +72,8 @@ export default defineNuxtPlugin(() => {
         private static _instance: any
         constructor() {
             if (!CoreContract._instance) {
-                web3.eth.handleRevert = true
-                CoreContract._instance = new web3.eth.Contract(
+                MSI.web3.eth.handleRevert = true
+                CoreContract._instance = new MSI.web3.eth.Contract(
                     CoreJson.abi,
                     new Config().CONTRACT_ADDRESS,
                 )
@@ -42,8 +86,15 @@ export default defineNuxtPlugin(() => {
 
     // Check Metamask, get accounts and setBSCNetwork (with addNetwork fallback)
     const prepareMetamask = async () => {
+        // todo: below line should connect Metamask wallet to site, but don't work
+        // await Ethereum.request({ method: 'eth_requestAccounts' });
         try {
             emitDisabled('prepareMetamask', true)
+            await MSI.reconnectWallet()
+
+            console.info("W")
+            console.log(MSI.wallet)
+
             await setBSCNetwork()
         } catch (e) {
             throwError(e.message)
@@ -55,7 +106,7 @@ export default defineNuxtPlugin(() => {
     const setBSCNetwork = async () => {
         try {
             // check if the chain to connect to is installed
-            await Ethereum.request({
+            await MSI.Eth.request({
                 method: 'wallet_switchEthereumChain',
                 params: [{ chainId: new Config().CHAIN_ID }],
             })
@@ -76,7 +127,7 @@ export default defineNuxtPlugin(() => {
 
     const addNetwork = async () => {
         try {
-            const resp = await Ethereum.request({
+            const resp = await MSI.Eth.request({
                 method: 'wallet_addEthereumChain',
                 params: [
                     {
@@ -116,24 +167,34 @@ export default defineNuxtPlugin(() => {
 
     const registerWhose = async (whose) => {
         console.info("registerWhose start")
-        const accounts = await Ethereum.request({ method: 'eth_requestAccounts' })
+
         try {
             emitDisabled(`registerWhose`, true)
             // todo: check allowance before approve
             try {
 
-                console.log(whose)
+                // const contractAddress = new Config().CONTRACT_ADDRESS
 
-                const gas = await CoreContractInstance
-                    .methods.register(whose)
-                    .estimateGas({ from: accounts[0] })
-
+                // const gas = await CoreContractInstance
+                //     .methods.register(whose)
+                //     .estimateGas({
+                //         from: accounts[0],
+                //         value: 1000000,
+                //     })
+                // console.info("gas")
+                // console.log(gas)
+                // console.info("accounts[0]")
+                // console.log(accounts[0])
                 const resp = await CoreContractInstance
                     .methods.register(whose).send({
-                        from: accounts[0],
-                        gas,
+                        from: MSI.wallet,
+                        gasLimit: "30000000",
                     })
-
+                    // .methods.register(whose).send({
+                    //     from: accounts[0],
+                    //     value: 1000000,
+                    //     gasLimit: 210000, // not required
+                    // })
                 // todo: listen to events and show status
                 console.log(resp)
 
@@ -149,15 +210,14 @@ export default defineNuxtPlugin(() => {
     }
 
     const sendBnb = async (amount) => {
-        const accounts = await Ethereum.request({ method: 'eth_requestAccounts' })
         try {
             emitDisabled(`sendBnb`, true)
             // todo: check allowance before approve
             try {
-                const resp = await web3.eth.sendTransaction({
-                    from: accounts[0],
+                const resp = await MSI.web3.eth.sendTransaction({
+                    from: MSI.wallet,
                     to: new Config().CONTRACT_ADDRESS,
-                    value: web3.toWei(amount, "ether")
+                    value: MSI.web3.utils.toWei(amount, "ether")
                 });
 
                 // todo: listen to events and show status
@@ -174,15 +234,52 @@ export default defineNuxtPlugin(() => {
         }
     }
 
+    const getCoreUser = async (userWallet) => {
+        try {
+            emitDisabled(`getCoreUser`, true)
+            const resp = await CoreContractInstance
+                .methods.getUserFromCore(userWallet)
+                .call({
+                    from: MSI.wallet,
+                    to: new Config().CONTRACT_ADDRESS,
+                })
+            console.log(resp)
+        } catch (e) {
+            throwError(e.message)
+        } finally {
+            emitDisabled(`getCoreUser`, false)
+        }
+    }
+
+    const getMatrixUser = async (userWallet) => {
+        try {
+            emitDisabled(`getMatrixUser`, true)
+            try {
+                const resp = await CoreContractInstance.methods.getUserFromMatrix(userWallet)
+                console.log(resp)
+
+            } catch (e) {
+                throwError(e.message)
+            }
+
+        } catch (e) {
+            throwError(e.message)
+        } finally {
+            emitDisabled(`getMatrixUser`, false)
+        }
+    }
+
     return {
         provide: {
             SC: {
-                Web3: globalThis.web3,
-                Ethereum,
+                MSI,
+                Web3: MSI.web3,
                 throwError,
                 prepareMetamask,
                 registerWhose,
                 sendBnb,
+                getCoreUser,
+                getMatrixUser,
             },
         }
     }

@@ -2,10 +2,7 @@
 .container
   .row
     .col
-    .col
-      .btn-group(role="group")
-        metamask
-    .col
+      metamask
 </template>
 
 <script setup>
