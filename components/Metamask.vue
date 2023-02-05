@@ -1,10 +1,10 @@
 <template lang="pug">
 .container
 
-  .row.frame.frame_info(v-if="testAlerts.length > 0")
+  .row.frame.frame_info(v-if="alerts.length > 0")
     .row
       .alert(
-        v-for="(alert, index) in testAlerts"
+        v-for="(alert, index) in alerts"
         :class="'alert-'+alert.type+' d-flex'"
         role="alert"
       )
@@ -21,7 +21,7 @@
           path(
             :d="getPathByAlertType(alert.type)"
           )
-        span {{ alert.message }}
+        pre {{ alert.message }}
         button(
           style="margin-left: auto"
           type="button"
@@ -39,8 +39,9 @@
         strong Awaiting {{ disabled.cause }}... &nbsp;
         .spinner-border.ms-auto.text-primary(role="status")
 
-    .row(v-if="!!error")
-      .alert.alert-danger {{ error }}
+    // todo ----------
+    //.row(v-if="!!error")
+    //  .alert.alert-danger {{ error }}
 
     .mb-3.row(v-if="connectedWallet")
       .debug-panel Connected wallet: {{ connectedWallet }}
@@ -157,44 +158,35 @@
 
 import {reactive} from "#imports";
 
-const errorTimeout = 5000
+// const errorTimeout = 5000
 export default defineComponent({
   setup() {
     const { $on, $SC } = useNuxtApp()
-    const error = ref('')
+    // const error = ref('')
     let disabled = ref({})
     const registerWhoseAddr = ref('')
     const sendBnbAmount = ref('')
 
     const userCoreAddress = ref('')
     const getCoreUser = async () => {
-      // console.log(typeof userCoreAddress.value, userCoreAddress.value)
       await $SC.getCoreUser(userCoreAddress.value)
     }
 
     const userMatrixLevel = ref('')
     const userMatrixAddress = ref('')
     const getMatrixUser = async () => {
-      // console.log(typeof userMatrixAddress.value, userMatrixAddress.value)
-      // console.log(typeof userMatrixLevel.value, userMatrixLevel.value)
       await $SC.getMatrixUser(userMatrixLevel.value, userMatrixAddress.value)
     }
 
     const connectedWallet = ref('')
 
     onMounted(async () => {
-      // console.info("onMounted:")
-      // console.log($SC)
-
       await $SC.MSI.connectWallet()
 
-      // console.info("WALLET:")
-      // console.log($SC.MSI.wallet)
       connectedWallet.value = $SC.MSI.wallet
 
       if (!$SC.MSI.web3) {
-        error.value = 'Установите metamask!'
-        setTimeout(() => (error.value = ''), errorTimeout)
+        alerts.value.push({type: 'danger', message: "Установите metamask!"})
       }
 
       $SC.MSI.Eth.on("accountsChanged", async (accountsPassed) => {
@@ -226,9 +218,12 @@ export default defineComponent({
     const sendBnb = async () =>
         (await $SC.sendBnb(sendBnbAmount.value))
 
-    $on('error', (msg: string) => {
-      error.value = msg
-      setTimeout(() => (error.value = ''), errorTimeout)
+    const alerts = ref([])
+
+    $on('alert', ({type, message}) => {
+      alerts.value.push({type, message})
+      // error.value = msg
+      // setTimeout(() => (error.value = ''), errorTimeout)
     })
 
     $on('disabled', (payload: { cause: string, disabled: boolean }) => {
@@ -249,38 +244,16 @@ export default defineComponent({
       }
     }
 
-    const testAlerts = reactive(
-        [
-          {
-            type: "success",
-            message: "cross-env NUXT_HOST=0.0.0.0 NUXT_PORT=80 node .output/server/index.mjs",
-          },
-          {
-            type: "primary",
-            message: "cross-env NUXT_HOST=0.0.0.0 NUXT_PORT=80 node .output/server/index.mjs",
-          },
-          {
-            type: "warning",
-            message: "cross-env NUXT_HOST=0.0.0.0 NUXT_PORT=80 node .output/server/index.mjs",
-          },
-          {
-            type: "danger",
-            message: "cross-env NUXT_HOST=0.0.0.0 NUXT_PORT=80 node .output/server/index.mjs",
-          },
-        ]
-    )
-
     const closeAlert = (index) => {
-      testAlerts.splice(index, 1);
+      alerts.value.splice(index, 1);
     }
 
     return {
-      testAlerts,
+      alerts,
       getPathByAlertType,
       closeAlert,
       connectedWallet,
       reconnectWallet,
-      error,
       prepareMetamask,
       disabled,
       registerWhoseAddr,
@@ -308,6 +281,8 @@ export default defineComponent({
   &_info
     border-color: #0a53be
     padding-bottom: 0
+    .alert
+      padding: 10px
 .row
   margin: 0
 .debug-panel

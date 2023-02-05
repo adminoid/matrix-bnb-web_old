@@ -22,20 +22,10 @@ export default defineNuxtPlugin(() => {
             }
         }
         async connectWallet() {
-            // console.info("before eth_requestAccounts")
             const accounts = await this.Eth.request({ method: 'eth_requestAccounts' })
-            // console.log(this.Eth)
             this.wallet = accounts[0]
-            // console.info("after eth_requestAccounts")
-            // console.log(this.wallet)
         }
         async reconnectWallet() {
-            // console.info("reconnectWallet()...")
-            // await this.Eth.request({
-            //     method: "eth_requestAccounts",
-            //     params: [{eth_accounts: {}}]
-            // })
-
             const accounts = await this.Eth.request({
                 method: "wallet_requestPermissions",
                 params: [{
@@ -90,14 +80,9 @@ export default defineNuxtPlugin(() => {
         // await Ethereum.request({ method: 'eth_requestAccounts' });
         try {
             emitDisabled('prepareMetamask', true)
-            // await MSI.reconnectWallet()
-            //
-            // console.info("W")
-            // console.log(MSI.wallet)
-
             await setBSCNetwork()
         } catch (e) {
-            throwError(e.message)
+            throwAlert('danger', e.message)
         } finally {
             emitDisabled('prepareMetamask', false)
         }
@@ -117,10 +102,10 @@ export default defineNuxtPlugin(() => {
                 try {
                     await addNetwork()
                 } catch (e) {
-                    throwError(e.message)
+                    throwAlert('danger', e.message)
                 }
             } else {
-                throwError(e.message)
+                throwAlert('danger', e.message)
             }
         }
     }
@@ -143,17 +128,20 @@ export default defineNuxtPlugin(() => {
                 ],
             })
         } catch (e) {
-            throwError(e.message)
+            throwAlert('danger', e.message)
         }
     }
 
-    const throwError = (msg: string) => {
-        if (typeof msg === 'string' && msg.indexOf("\n") !== -1) {
-            let lines = msg.split('\n')
+    const throwAlert = (type: string, message: string) => {
+        if (type === 'danger' && typeof message === 'string' && message.indexOf("\n") !== -1) {
+            let lines = message.split('\n')
             lines.splice(0, 1)
-            msg = JSON.parse(lines.join('\n')).message
+            message = JSON.parse(lines.join('\n')).message
         }
-        useNuxtApp().$emit('error', msg)
+        useNuxtApp().$emit('alert', {
+            type,
+            message,
+        })
     }
 
     const emitDisabled = (cause: string, disabled: boolean) => {
@@ -166,31 +154,16 @@ export default defineNuxtPlugin(() => {
     const CoreContractInstance = new CoreContract()
 
     const registerWhose = async (whose) => {
-        // console.info("registerWhose start")
-
         try {
             emitDisabled(`registerWhose`, true)
             // todo: check allowance before approve
             try {
-                // const value = await CoreContractInstance.methods.payUnit.send({
-                //     from: MSI.wallet,
-                // });
-                // CoreContractInstance.methods.payUnit().call().then(function (res) {console.log(res)})
-
-                // const value = await CoreContractInstance.payUnit()
                 await MSI.connectWallet()
-                // console.warn("MSI.wallet 2", MSI.wallet)
                 const value = await CoreContractInstance.methods
                     .payUnit()
                     .call({
                         from: MSI.wallet,
                     });
-
-                // console.info("payUnit value:")
-                // console.log(value)
-                // console.log(value.toString())
-
-                // console.log(value)
                 const resp = await CoreContractInstance
                     .methods.register(whose).send({
                         from: MSI.wallet,
@@ -199,21 +172,28 @@ export default defineNuxtPlugin(() => {
                     })
 
                 // todo: display resp in web interface
-                console.log(resp)
+                const msg = `
+registerWhose() method params:
+FROM: ${resp.from}
+TO: ${resp.to}
+GAS: ${resp.gasUsed}
+TX: ${resp.transactionHash}
+
+`
+                throwAlert('success', msg)
 
             } catch (e) {
-                throwError(e.message)
+                throwAlert('danger', e.message)
             }
 
         } catch (e) {
-            throwError(e.message)
+            throwAlert('danger', e.message)
         } finally {
             emitDisabled(`registerWhose`, false)
         }
     }
 
     const sendBnb = async (amount) => {
-        // console.warn("am:", amount.value)
         try {
             emitDisabled(`sendBnb`, true)
             // todo: check allowance before approve
@@ -226,14 +206,25 @@ export default defineNuxtPlugin(() => {
                 });
 
                 // todo: display resp in web interface
-                console.log(resp)
+                const msg = `
+sendBnb() method params:
+FROM: ${resp.from}
+TO: ${resp.to}
+GAS: ${resp.gasUsed}
+TX: ${resp.transactionHash}
+
+`
+                throwAlert('success', msg)
+
+                // todo: format message here...
+                // throwAlert('', e.message)
 
             } catch (e) {
-                throwError(e.message)
+                throwAlert('danger', e.message)
             }
 
         } catch (e) {
-            throwError(e.message)
+            throwAlert('danger', e.message)
         } finally {
             emitDisabled(`sendBnb`, false)
         }
@@ -243,9 +234,6 @@ export default defineNuxtPlugin(() => {
         try {
             emitDisabled(`getCoreUser`, true)
             await MSI.connectWallet()
-
-            console.info("core-----", MSI.wallet)
-
             const resp = await CoreContractInstance
                 .methods.getUserFromCore(userWallet)
                 .call({
@@ -253,18 +241,29 @@ export default defineNuxtPlugin(() => {
                     // to: new Config().CONTRACT_ADDRESS,
                 })
 
-            // todo: display resp in web interface
-            console.log(resp)
+            // display resp in web interface
+            let msg
+            if (!resp.isValue) {
+                msg = `user ${userWallet} is not response`
+            } else {
+                msg = `
+getCoreUser() method response:
+claims: ${resp.claims}
+gifts: ${resp.gifts}
+level: ${resp.level}
+whose: ${resp.whose}
 
+`
+            }
+            throwAlert('primary', msg)
         } catch (e) {
-            throwError(e.message)
+            throwAlert('danger', e.message)
         } finally {
             emitDisabled(`getCoreUser`, false)
         }
     }
 
     const getMatrixUser = async (level, userWallet) => {
-        console.info("getMatrixUser()")
         try {
             emitDisabled(`getMatrixUser`, true)
             try {
@@ -277,14 +276,29 @@ export default defineNuxtPlugin(() => {
                     })
 
                 // todo: display resp in web interface
-                console.log(resp)
+                let msg
+                if (!resp.isValue) {
+                    msg = `user ${userWallet} is not registered`
+                } else {
+                    msg = `
+getMatrixUser() method response:
+index: ${resp.index}
+isRight: ${resp.isRight}
+length: ${resp.length}
+parent: ${resp.parent}
+plateau: ${resp.plateau}
+
+`
+                }
+                throwAlert('primary', msg)
+
 
             } catch (e) {
-                throwError(e.message)
+                throwAlert('danger', e.message)
             }
 
         } catch (e) {
-            throwError(e.message)
+            throwAlert('danger', e.message)
         } finally {
             emitDisabled(`getMatrixUser`, false)
         }
@@ -294,7 +308,7 @@ export default defineNuxtPlugin(() => {
         provide: {
             SC: {
                 MSI: MSI,
-                throwError,
+                throwAlert,
                 prepareMetamask,
                 registerWhose,
                 sendBnb,
