@@ -30,7 +30,7 @@ export default defineNuxtPlugin(() => {
             // console.log(this.wallet)
         }
         async reconnectWallet() {
-            console.info("reconnectWallet()...")
+            // console.info("reconnectWallet()...")
             // await this.Eth.request({
             //     method: "eth_requestAccounts",
             //     params: [{eth_accounts: {}}]
@@ -166,7 +166,7 @@ export default defineNuxtPlugin(() => {
     const CoreContractInstance = new CoreContract()
 
     const registerWhose = async (whose) => {
-        console.info("registerWhose start")
+        // console.info("registerWhose start")
 
         try {
             emitDisabled(`registerWhose`, true)
@@ -179,29 +179,26 @@ export default defineNuxtPlugin(() => {
 
                 // const value = await CoreContractInstance.payUnit()
                 await MSI.connectWallet()
-                console.warn("MSI.wallet 2", MSI.wallet)
+                // console.warn("MSI.wallet 2", MSI.wallet)
                 const value = await CoreContractInstance.methods
                     .payUnit()
                     .call({
                         from: MSI.wallet,
                     });
 
-                console.info("payUnit value:")
-                console.log(value)
-                console.log(value.toString())
+                // console.info("payUnit value:")
+                // console.log(value)
+                // console.log(value.toString())
 
                 // console.log(value)
                 const resp = await CoreContractInstance
                     .methods.register(whose).send({
                         from: MSI.wallet,
                         value,
+                        // gasLimit: 210000, // not required
                     })
-                    // .methods.register(whose).send({
-                    //     from: accounts[0],
-                    //     value: 1000000,
-                    //     gasLimit: 210000, // not required
-                    // })
-                // todo: listen to events and show status
+
+                // todo: display resp in web interface
                 console.log(resp)
 
             } catch (e) {
@@ -216,7 +213,7 @@ export default defineNuxtPlugin(() => {
     }
 
     const sendBnb = async (amount) => {
-        console.warn("am:", amount.value)
+        // console.warn("am:", amount.value)
         try {
             emitDisabled(`sendBnb`, true)
             // todo: check allowance before approve
@@ -228,7 +225,7 @@ export default defineNuxtPlugin(() => {
                     value: MSI.web3.utils.toWei(amount, "ether")
                 });
 
-                // todo: listen to events and show status
+                // todo: display resp in web interface
                 console.log(resp)
 
             } catch (e) {
@@ -256,6 +253,7 @@ export default defineNuxtPlugin(() => {
                     // to: new Config().CONTRACT_ADDRESS,
                 })
 
+            // todo: display resp in web interface
             console.log(resp)
 
         } catch (e) {
@@ -271,12 +269,6 @@ export default defineNuxtPlugin(() => {
             emitDisabled(`getMatrixUser`, true)
             try {
                 await MSI.connectWallet()
-
-                console.info("matrix-----", MSI.wallet)
-
-                console.info("level", level)
-                console.info("userWallet", userWallet)
-
                 const resp = await CoreContractInstance
                     .methods.getUserFromMatrix(level, userWallet)
                     .call({
@@ -284,12 +276,10 @@ export default defineNuxtPlugin(() => {
                         to: new Config().CONTRACT_ADDRESS,
                     })
 
-                console.info("reSP:")
+                // todo: display resp in web interface
                 console.log(resp)
 
             } catch (e) {
-                console.warn("throwError(e.message)")
-                console.warn(e.message)
                 throwError(e.message)
             }
 
