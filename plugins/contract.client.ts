@@ -21,7 +21,7 @@ export default defineNuxtPlugin(() => {
                 this.web3 = new Web3(this.Eth)
             }
         }
-        async connectAndGetWallet() {
+        async connectWallet() {
             // console.info("before eth_requestAccounts")
             const accounts = await this.Eth.request({ method: 'eth_requestAccounts' })
             // console.log(this.Eth)
@@ -90,10 +90,10 @@ export default defineNuxtPlugin(() => {
         // await Ethereum.request({ method: 'eth_requestAccounts' });
         try {
             emitDisabled('prepareMetamask', true)
-            await MSI.reconnectWallet()
-
-            console.info("W")
-            console.log(MSI.wallet)
+            // await MSI.reconnectWallet()
+            //
+            // console.info("W")
+            // console.log(MSI.wallet)
 
             await setBSCNetwork()
         } catch (e) {
@@ -178,7 +178,7 @@ export default defineNuxtPlugin(() => {
                 // CoreContractInstance.methods.payUnit().call().then(function (res) {console.log(res)})
 
                 // const value = await CoreContractInstance.payUnit()
-                await MSI.connectAndGetWallet()
+                await MSI.connectWallet()
                 console.warn("MSI.wallet 2", MSI.wallet)
                 const value = await CoreContractInstance.methods
                     .payUnit()
@@ -216,11 +216,12 @@ export default defineNuxtPlugin(() => {
     }
 
     const sendBnb = async (amount) => {
+        console.warn("am:", amount.value)
         try {
             emitDisabled(`sendBnb`, true)
             // todo: check allowance before approve
             try {
-                await MSI.connectAndGetWallet()
+                await MSI.connectWallet()
                 const resp = await MSI.web3.eth.sendTransaction({
                     from: MSI.wallet,
                     to: new Config().CONTRACT_ADDRESS,
@@ -244,7 +245,7 @@ export default defineNuxtPlugin(() => {
     const getCoreUser = async (userWallet) => {
         try {
             emitDisabled(`getCoreUser`, true)
-            await MSI.connectAndGetWallet()
+            await MSI.connectWallet()
 
             console.info("core-----", MSI.wallet)
 
@@ -269,7 +270,7 @@ export default defineNuxtPlugin(() => {
         try {
             emitDisabled(`getMatrixUser`, true)
             try {
-                await MSI.connectAndGetWallet()
+                await MSI.connectWallet()
 
                 console.info("matrix-----", MSI.wallet)
 
@@ -302,8 +303,7 @@ export default defineNuxtPlugin(() => {
     return {
         provide: {
             SC: {
-                MSI,
-                Web3: MSI.web3,
+                MSI: MSI,
                 throwError,
                 prepareMetamask,
                 registerWhose,

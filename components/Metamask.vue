@@ -12,13 +12,24 @@
     .row(v-if="!!error")
       .alert.alert-danger {{ error }}
 
+    .mb-3.row(v-if="connectedWallet")
+      .debug-panel Connected wallet: {{ connectedWallet }}
+
     .row
-      button.mb-3(
-        type="button"
-        class="btn btn-outline-success"
-        @click="prepareMetamask"
-        :disabled="disabled.disabled"
-      ) Prepare Metamask
+      .col
+        button.mb-3.w-100(
+          type="button"
+          class="btn btn-outline-success"
+          @click="prepareMetamask"
+          :disabled="disabled.disabled"
+        ) Prepare Metamask
+      .col
+        button.mb-3.w-100(
+          type="button"
+          class="btn btn-outline-success"
+          @click="reconnectWallet"
+          :disabled="disabled.disabled"
+        ) Reconnect wallet
 
   .row.frame
     .mb-3.row(v-if="registerWhoseAddr")
@@ -61,9 +72,9 @@
       ) Get Core user
 
   .row.frame
-    .mb-3.row
+    .row
       .col.col-sm-3.mb-3
-        label.col-form-label(for='user-matrix') Get Matrix user
+        label.col-form-label(for='user-matrix') User
       .col-sm-9.mb-3
         .input-group
           input#user-matrix.form-control.col-4(
@@ -107,6 +118,9 @@
         @click="sendBnb"
         :disabled="disabled.disabled"
       ) Send BNB
+
+.end-space
+
 </template>
 
 <script lang="ts">
@@ -134,30 +148,49 @@ export default defineComponent({
       await $SC.getMatrixUser(userMatrixLevel.value, userMatrixAddress.value)
     }
 
+    const connectedWallet = ref('')
+
     onMounted(async () => {
-      if (!$SC.Web3) {
+      console.info("onMounted:")
+      console.log($SC)
+
+      await $SC.MSI.connectWallet()
+
+      console.info("WALLET:")
+      console.log($SC.MSI.wallet)
+      connectedWallet.value = $SC.MSI.wallet
+
+      if (!$SC.MSI.web3) {
         error.value = 'Установите metamask!'
         setTimeout(() => (error.value = ''), errorTimeout)
       }
 
-      $SC.MSI.Eth.on("accountsChanged", async function() {
+      $SC.MSI.Eth.on("accountsChanged", async (accountsPassed) => {
+        console.info("...accountsChanged")
+        console.info(accountsPassed)
         // Time to reload your interface with accounts[0]!
         const accounts = await $SC.MSI.web3.eth.getAccounts();
         // accounts = await web3.eth.getAccounts();
         console.info("account has changed")
-        console.log(accounts[0])
-        console.log(accounts)
-      });
-
-      // $SC.MSI.Eth.on('accountsChanged', function (accounts) {
-      //   // Time to reload your interface with accounts[0]!
-      // })
+        connectedWallet.value = accounts[0]
+        console.log(connectedWallet.value)
+      })
     })
 
     const prepareMetamask = async () =>
         (await $SC.prepareMetamask())
+
+    const reconnectWallet = async () =>
+        (await $SC.MSI.reconnectWallet())
+
+    // const reconnectWallet = async () => {
+    //   console.info("reconnectWallet()")
+    //   await $SC.MSI.reconnectWallet()
+    // }
+
     const registerWhose = async () =>
         (await $SC.registerWhose(registerWhoseAddr.value))
+
     const sendBnb = async () =>
         (await $SC.sendBnb(sendBnbAmount.value))
 
@@ -172,6 +205,8 @@ export default defineComponent({
     })
 
     return {
+      connectedWallet,
+      reconnectWallet,
       error,
       prepareMetamask,
       disabled,
@@ -205,4 +240,6 @@ export default defineComponent({
   font-size: 11px
   border: 1px dashed rgba(231, 66, 140, 0.51)
   border-radius: 2px
+.end-space
+  height: 800px
 </style>
