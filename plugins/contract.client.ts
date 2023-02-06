@@ -1,6 +1,6 @@
 import { defineNuxtPlugin } from "#app"
 import Web3 from 'web3/dist/web3.min.js'
-import CoreJson from '~/contracts/Core.sol/Core.json'
+import CoreJson from "../contracts/Core.sol/Core.json";
 import { getGlobalThis } from "@vue/shared"
 
 export default defineNuxtPlugin(() => {

@@ -33,7 +33,7 @@ export default defineNuxtConfig({
             // CONTRACT_ADDRESS: '0x5fbdb2315678afecb367f032d93f642f64180aa3',
 
             // testnet bsc
-            CONTRACT_ADDRESS: '0xF18F944120BADf165098CA3C92934d5510E4386E',
+            CONTRACT_ADDRESS: '0xB9d1d4Fb5d0B0F36f8B1626afAe978FF8d115b72',
 
             DECIMALS: 18,
         }
