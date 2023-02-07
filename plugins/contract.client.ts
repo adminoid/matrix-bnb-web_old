@@ -26,22 +26,35 @@ export default defineNuxtPlugin(() => {
             this.wallet = accounts[0]
         }
         async reconnectWallet() {
-            const accounts = await this.Eth.request({
-                method: "wallet_requestPermissions",
-                params: [{
-                    eth_accounts: {}
-                }]
-            })
+            try {
+                const accounts = await this.Eth.request({
+                    method: "wallet_requestPermissions",
+                    params: [{
+                        eth_accounts: {}
+                    }]
+                })
 
-            this.Eth.request({
-                method: 'eth_requestAccounts'
-            })
+                this.Eth.request({
+                    method: 'eth_requestAccounts'
+                })
 
-            this.wallet = accounts[0]
+                const walletsArray = accounts[0]?.caveats[0]?.value
+                this.wallet = walletsArray[0]
+
+                throwAlert('primary', `Wallet: ${this.wallet} connected`)
+            } catch (e) {
+                throwAlert('danger', e.message)
+            }
         }
     }
 
     const MSI = new MetamaskStuff()
+
+    type CurrencyType = {
+        name: string,
+        symbol: string,
+        decimals: number,
+    }
 
     class Config {
         private static _instance: any
@@ -49,7 +62,7 @@ export default defineNuxtPlugin(() => {
         CHAIN_ID: string;
         CHAIN_NAME: string;
         RPC_URL: string;
-        DECIMALS: string;
+        CURRENCY: CurrencyType;
         constructor() {
             if (!Config._instance) {
                 Config._instance = useRuntimeConfig()
@@ -119,11 +132,7 @@ export default defineNuxtPlugin(() => {
                         chainId: new Config().CHAIN_ID,
                         chainName: new Config().CHAIN_NAME,
                         rpcUrls: [new Config().RPC_URL],
-                        nativeCurrency: {
-                            name: 'Binance Coin',
-                            symbol: 'BNB',
-                            decimals: 18,
-                        }
+                        nativeCurrency: new Config().CURRENCY,
                     },
                 ],
             })
@@ -168,7 +177,7 @@ export default defineNuxtPlugin(() => {
                     .methods.register(whose).send({
                         from: MSI.wallet,
                         value,
-                        // gasLimit: 210000, // not required
+                        gasLimit: 210000, // not required
                     })
 
                 // todo: display resp in web interface
@@ -244,7 +253,7 @@ TX: ${resp.transactionHash}
             // display resp in web interface
             let msg
             if (!resp.isValue) {
-                msg = `user ${userWallet} is not response`
+                msg = `user ${userWallet} is not registered`
             } else {
                 msg = `
 getCoreUser() method response:
@@ -283,9 +292,8 @@ whose: ${resp.whose}
                     msg = `
 getMatrixUser() method response:
 index: ${resp.index}
-isRight: ${resp.isRight}
-length: ${resp.length}
 parent: ${resp.parent}
+isRight: ${resp.isRight}
 plateau: ${resp.plateau}
 
 `

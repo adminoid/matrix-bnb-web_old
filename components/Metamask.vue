@@ -281,8 +281,14 @@ export default defineComponent({
   &_info
     border-color: #0a53be
     padding-bottom: 0
+    .row
+      padding: 0
     .alert
       padding: 10px
+      pre
+        padding-top: 0.2rem
+        padding-left: 0.2rem
+        margin-bottom: 0
 .row
   margin: 0
 .debug-panel
