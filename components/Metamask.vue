@@ -156,7 +156,7 @@
 
 <script lang="ts">
 
-import {reactive} from "#imports";
+// import {reactive} from "#imports";
 
 // const errorTimeout = 5000
 export default defineComponent({
@@ -181,7 +181,7 @@ export default defineComponent({
     const connectedWallet = ref('')
 
     onMounted(async () => {
-      await $SC.MSI.connectWallet()
+      // await $SC.MSI.connectWallet()
 
       connectedWallet.value = $SC.MSI.wallet
 

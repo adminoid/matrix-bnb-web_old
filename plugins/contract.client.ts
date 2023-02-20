@@ -89,6 +89,8 @@ export default defineNuxtPlugin(() => {
 
     // Check Metamask, get accounts and setBSCNetwork (with addNetwork fallback)
     const prepareMetamask = async () => {
+        // connectWallet
+        await MSI.connectWallet()
         // todo: below line should connect Metamask wallet to site, but don't work
         // await Ethereum.request({ method: 'eth_requestAccounts' });
         try {
