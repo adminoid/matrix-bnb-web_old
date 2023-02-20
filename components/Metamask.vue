@@ -31,6 +31,9 @@
           @click="closeAlert(index)"
         )
 
+  .row.frame.frame_info.frame_no-padding.d-flex(v-else)
+    .row.alert.justify-content-center No messages yet...
+
   .row.frame
     .mb-3.row
       .col.col-sm-6 Add bsc network (if not exist) and set that active
@@ -289,6 +292,10 @@ export default defineComponent({
         padding-top: 0.2rem
         padding-left: 0.2rem
         margin-bottom: 0
+  &_no-padding
+    padding: 0
+    border-color: rgba(10, 83, 190, 0.42)
+    font-style: italic
 .row
   margin: 0
 .debug-panel
