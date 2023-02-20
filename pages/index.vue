@@ -1,8 +1,10 @@
 <template lang="pug">
 .container
   .row
-    .col
+    .col-md-0.col-lg-2
+    .col-md-12.col-lg-8
       metamask
+    .col-sm-0.col-lg-2
 </template>
 
 <script setup>
