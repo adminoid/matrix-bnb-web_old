@@ -1,6 +1,33 @@
 <template lang="pug">
 .container
 
+  .row.frame
+    .row.mb-3
+      .col.col-sm-6 Add bsc network (if not exist) and set that active
+
+      .col.col-sm-6.mb-3(v-if="disabled.disabled")
+        strong Awaiting {{ disabled.cause }}... &nbsp;
+        .spinner-border.ms-auto.text-primary(role="status")
+
+    .mb-3.row(v-if="connectedWallet")
+      .debug-panel Connected wallet: {{ connectedWallet }}
+
+    .row
+      .col
+        button.mb-3.w-100(
+          type="button"
+          class="btn btn-outline-success"
+          @click="prepareMetamask"
+          :disabled="disabled.disabled"
+        ) Prepare Metamask
+      .col
+        button.mb-3.w-100(
+          type="button"
+          class="btn btn-outline-success"
+          @click="reconnectWallet"
+          :disabled="disabled.disabled"
+        ) Reconnect wallet
+
   .row.frame.frame_info(v-if="alerts.length > 0")
     .row
       .alert(
@@ -30,40 +57,8 @@
           aria-label="Close"
           @click="closeAlert(index)"
         )
-
   .row.frame.frame_info.frame_no-padding.d-flex(v-else)
     .row.alert.justify-content-center No messages yet...
-
-  .row.frame
-    .mb-3.row
-      .col.col-sm-6 Add bsc network (if not exist) and set that active
-
-      .col.col-sm-6.mb-3(v-if="disabled.disabled")
-        strong Awaiting {{ disabled.cause }}... &nbsp;
-        .spinner-border.ms-auto.text-primary(role="status")
-
-    // todo ----------
-    //.row(v-if="!!error")
-    //  .alert.alert-danger {{ error }}
-
-    .mb-3.row(v-if="connectedWallet")
-      .debug-panel Connected wallet: {{ connectedWallet }}
-
-    .row
-      .col
-        button.mb-3.w-100(
-          type="button"
-          class="btn btn-outline-success"
-          @click="prepareMetamask"
-          :disabled="disabled.disabled"
-        ) Prepare Metamask
-      .col
-        button.mb-3.w-100(
-          type="button"
-          class="btn btn-outline-success"
-          @click="reconnectWallet"
-          :disabled="disabled.disabled"
-        ) Reconnect wallet
 
   .row.frame
     .mb-3.row(v-if="registerWhoseAddr")
@@ -85,6 +80,25 @@
         @click="registerWhose"
         :disabled="disabled.disabled"
       ) Register
+
+  .row.frame
+    .mb-3.row
+      .col.col-sm-3.mb-3
+        label.col-form-label(for='withdraw-claim') Withdraw claim (amount)
+      .col-sm-9.mb-3
+        .input-group
+          input#withdraw-claim.form-control.col-4(
+            type='text'
+            v-model="withdrawClaimAmount"
+            :disabled="disabled.disabled"
+          )
+    .row
+      button(
+        type="button"
+        class="btn btn-outline-primary"
+        @click="withdrawClaim"
+        :disabled="disabled.disabled"
+      ) Withdraw claim (amount)
 
   .row.frame
     .mb-3.row
@@ -136,8 +150,10 @@
 
   .row.frame
     .mb-3.row
+      .fst-italic Same as just send bnb from wallet to contract address
+    .mb-3.row
       .col.col-sm-3.mb-3
-        label.col-form-label(for='send-bnb') Send BNB
+        label.col-form-label(for='send-bnb') Send BNB (amount)
       .col-sm-9.mb-3
         .input-group
           input#send-bnb.form-control.col-4(
@@ -151,7 +167,7 @@
         class="btn btn-outline-danger"
         @click="sendBnb"
         :disabled="disabled.disabled"
-      ) Send BNB
+      ) Send BNB (amount)
 
 .end-space
 
@@ -169,6 +185,7 @@ export default defineComponent({
     let disabled = ref({})
     const registerWhoseAddr = ref('')
     const sendBnbAmount = ref('')
+    const withdrawClaimAmount = ref('')
 
     const userCoreAddress = ref('')
     const getCoreUser = async () => {
@@ -218,6 +235,9 @@ export default defineComponent({
     const registerWhose = async () =>
         (await $SC.registerWhose(registerWhoseAddr.value))
 
+    const withdrawClaim = async () =>
+        (await $SC.withdrawClaim(withdrawClaimAmount.value))
+
     const sendBnb = async () =>
         (await $SC.sendBnb(sendBnbAmount.value))
 
@@ -261,8 +281,10 @@ export default defineComponent({
       disabled,
       registerWhoseAddr,
       registerWhose,
-      sendBnbAmount,
+      withdrawClaim,
+      withdrawClaimAmount,
       sendBnb,
+      sendBnbAmount,
       userCoreAddress,
       getCoreUser,
       userMatrixAddress,

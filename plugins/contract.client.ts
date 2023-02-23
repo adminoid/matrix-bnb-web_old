@@ -179,7 +179,7 @@ export default defineNuxtPlugin(() => {
                     .methods.register(whose).send({
                         from: MSI.wallet,
                         value,
-                        gasLimit: 210000, // not required
+                        // gasLimit: 210000, // not required
                     })
 
                 // todo: display resp in web interface
@@ -187,6 +187,55 @@ export default defineNuxtPlugin(() => {
 registerWhose() method params:
 FROM: ${resp.from}
 TO: ${resp.to}
+GAS: ${resp.gasUsed}
+TX: ${resp.transactionHash}
+
+`
+                throwAlert('success', msg)
+
+            } catch (e) {
+                throwAlert('danger', e.message)
+            }
+
+        } catch (e) {
+            throwAlert('danger', e.message)
+        } finally {
+            emitDisabled(`registerWhose`, false)
+        }
+    }
+
+    const withdrawClaim = async (amount) => {
+        console.info("c.c.ts withdrawClaim")
+        console.log("amount:", amount)
+        console.log("amount:", Number(amount))
+        console.log("towei:", MSI.web3.utils.toWei(amount, "ether"))
+        // console.log("towei:", ethers.utils.formatEther)
+        try {
+            emitDisabled(`withdrawClaim`, true)
+            try {
+                await MSI.connectWallet()
+                const resp = await CoreContractInstance.methods
+                    .withdrawClaim(MSI.web3.utils.toWei(amount, "ether"))
+                    .send({
+                        from: MSI.wallet,
+                        // gasLimit: 210000, // not required
+                    });
+                // const resp = await CoreContractInstance
+                //     .methods.register(whose).send({
+                //         from: MSI.wallet,
+                //         value,
+                //         gasLimit: 210000, // not required
+                //     })
+
+                console.log(resp)
+
+                // from - address for withdrawing
+                // gasUsed - used gas
+                // todo: display resp in web interface
+                const msg = `
+withdrawClaim() method params:
+FROM: ${resp.from}
+AMOUNT: ${amount}
 GAS: ${resp.gasUsed}
 TX: ${resp.transactionHash}
 
@@ -259,8 +308,8 @@ TX: ${resp.transactionHash}
             } else {
                 msg = `
 getCoreUser() method response:
-claims: ${resp.claims}
-gifts: ${resp.gifts}
+claims: ${MSI.web3.utils.fromWei(resp.claims, "ether")} BNB
+gifts: ${MSI.web3.utils.fromWei(resp.gifts, "ether")} BNB
 level: ${resp.level}
 whose: ${resp.whose}
 
@@ -293,7 +342,7 @@ whose: ${resp.whose}
                 } else {
                     msg = `
 getMatrixUser() method response:
-index: ${resp.index}
+number: ${resp.index}
 parent: ${resp.parent}
 isRight: ${resp.isRight}
 plateau: ${resp.plateau}
@@ -321,6 +370,7 @@ plateau: ${resp.plateau}
                 throwAlert,
                 prepareMetamask,
                 registerWhose,
+                withdrawClaim,
                 sendBnb,
                 getCoreUser,
                 getMatrixUser,

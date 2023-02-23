@@ -18,7 +18,7 @@ export default defineNuxtConfig({
 
             // this testnet:
             // RPC_URL: 'https://data-seed-prebsc-1-s1.binance.org:8545/',
-            // this don't sure what is:
+            // I don't sure what is it:
             // RPC_URL: 'https://data-seed-prebsc-2-s3.binance.org:8545/',
 
             // this localhost hardhat
