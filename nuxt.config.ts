@@ -29,7 +29,7 @@ export default defineNuxtConfig({
             // hardhat localhost:
             // CONTRACT_ADDRESS: '0x5fbdb2315678afecb367f032d93f642f64180aa3',
             // testnet bsc
-            CONTRACT_ADDRESS: '0xa8f1e5760364CBEFd3f9E475c272e3fFA09A53ca',
+            CONTRACT_ADDRESS: '0x9cfE614c5f8b2B851afceaDDE43609AFd55f989a',
 
             CURRENCY: {
                 name: 'Binance Coin',
