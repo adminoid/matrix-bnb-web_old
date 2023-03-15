@@ -179,7 +179,8 @@ export default defineNuxtPlugin(() => {
                     .methods.register(whose).send({
                         from: MSI.wallet,
                         value,
-                        // gasLimit: 210000, // not required
+                        gasLimit: 5000000, // not required
+                        gas: 210000,
                     })
 
                 // todo: display resp in web interface
