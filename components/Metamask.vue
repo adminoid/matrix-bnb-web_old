@@ -169,6 +169,17 @@
         :disabled="disabled.disabled"
       ) Send BNB (amount)
 
+  .row.frame
+    .mb-3.row
+      .fst-italic Withdraw 10% after year, then once of year
+    .row
+      button(
+        type="button"
+        class="btn btn-outline-danger"
+        @click="withdrawTen"
+        :disabled="disabled.disabled"
+      ) Withdraw
+
 .end-space
 
 </template>
@@ -241,6 +252,9 @@ export default defineComponent({
     const sendBnb = async () =>
         (await $SC.sendBnb(sendBnbAmount.value))
 
+    const withdrawTen = async () =>
+        (await $SC.withdrawTen())
+
     const alerts = ref([])
 
     $on('alert', ({type, message}) => {
@@ -290,6 +304,7 @@ export default defineComponent({
       userMatrixAddress,
       userMatrixLevel,
       getMatrixUser,
+      withdrawTen,
     }
   },
 })

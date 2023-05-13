@@ -19,6 +19,7 @@ export default defineNuxtPlugin(() => {
             }
             if (!this.web3) {
                 this.web3 = new Web3(this.Eth)
+                this.web3.eth.handleRevert = true
             }
         }
         async connectWallet() {
@@ -221,12 +222,6 @@ TX: ${resp.transactionHash}
                         from: MSI.wallet,
                         // gasLimit: 210000, // not required
                     });
-                // const resp = await CoreContractInstance
-                //     .methods.register(whose).send({
-                //         from: MSI.wallet,
-                //         value,
-                //         gasLimit: 210000, // not required
-                //     })
 
                 console.log(resp)
 
@@ -288,6 +283,68 @@ TX: ${resp.transactionHash}
             throwAlert('danger', e.message)
         } finally {
             emitDisabled(`sendBnb`, false)
+        }
+    }
+
+    const withdrawTen = async () => {
+        emitDisabled(`withdrawTen`, true)
+        try {
+            await MSI.connectWallet()
+
+            console.info("MSI.web3.handleRevert:")
+            console.log(MSI.web3.handleRevert)
+
+            const resp = await CoreContractInstance.methods
+                .getTenPercentOnceYear()
+                // .call()
+                .send({
+                    from: MSI.wallet,
+                    gasLimit: 210000, // not required
+                }
+                  // ,(err, tx) => {
+                  //     if (tx){
+                  //         console.log("it's ok")
+                  //     }
+                  //     if (err) {
+                  //         console.log(err)
+                  //     }
+                  // }
+
+                )
+                // .catch(e => console.log('1084:', e))
+                // .on('error', (err, receipt) => {
+                //     console.log("err.message =",err.message);
+                //     console.log("receipt =", receipt);
+                // });
+              // .catch(revertReason => console.log({ revertReason }))
+
+            console.dir(resp);
+            // console.dir(MSI.web3.utils.fromWei(resp, "ether"))
+
+            throwAlert('success', resp)
+
+        } catch (e) {
+            // console.error('in 1')
+            console.log(e.message)
+
+            // const msg = e.message.match(/Error:(.+)"/)
+            // console.log(msg)
+
+            const msg = e.message.match(/transaction:\s(.+?)"/)[1]
+
+            console.log("msg:", msg)
+            // todo: here parsing insert
+
+            throwAlert('danger', msg)
+
+            // const data = e.data;
+            // const txHash = Object.keys(data)[0];
+            // const reason = data[txHash].reason;
+            //
+            // console.log(reason);
+
+        } finally {
+            emitDisabled(`withdrawTen`, false)
         }
     }
 
@@ -373,6 +430,7 @@ plateau: ${resp.plateau}
                 registerWhose,
                 withdrawClaim,
                 sendBnb,
+                withdrawTen,
                 getCoreUser,
                 getMatrixUser,
             },

@@ -10,8 +10,7 @@ export default defineNuxtConfig({
             //     'https://data-seed-prebsc-1-s1.binance.org:8545/',
 
 
-            // hardhat localhost
-            CHAIN_ID: `0x7A69`, // hardhat node
+            CHAIN_ID: `0x7A69`, // or 31337 for mm, hardhat node
             // CHAIN_ID: `0x61`, // bsc testnet - 97 in decimal
 
 
