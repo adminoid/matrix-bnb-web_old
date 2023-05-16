@@ -78,8 +78,8 @@ export default defineNuxtPlugin(() => {
             if (!CoreContract._instance) {
                 MSI.web3.eth.handleRevert = true
                 CoreContract._instance = new MSI.web3.eth.Contract(
-                    CoreJson.abi,
-                    new Config().CONTRACT_ADDRESS,
+                  CoreJson.abi,
+                  new Config().CONTRACT_ADDRESS,
                 )
             }
             return CoreContract._instance
@@ -144,11 +144,16 @@ export default defineNuxtPlugin(() => {
         }
     }
 
-    const throwAlert = (type: string, message: string) => {
-        if (type === 'danger' && typeof message === 'string' && message.indexOf("\n") !== -1) {
-            let lines = message.split('\n')
-            lines.splice(0, 1)
-            message = JSON.parse(lines.join('\n')).message
+    const throwAlert = (type: string, msg: string) => {
+        let message = msg
+        // only for error messages
+        if (type === 'danger' && typeof msg === 'string') {
+            if (msg.includes('reverted with reason string')) {
+                message = msg.match(/transaction:\s(.+?)"/)[1]
+            }
+            else if (msg.includes('version=address')) {
+                message = msg
+            }
         }
         useNuxtApp().$emit('alert', {
             type,
@@ -169,23 +174,22 @@ export default defineNuxtPlugin(() => {
         try {
             emitDisabled(`registerWhose`, true)
             // todo: check allowance before approve
-            try {
-                await MSI.connectWallet()
-                const value = await CoreContractInstance.methods
-                    .payUnit()
-                    .call({
-                        from: MSI.wallet,
-                    });
-                const resp = await CoreContractInstance
-                    .methods.register(whose).send({
-                        from: MSI.wallet,
-                        value,
-                        // gasLimit: 5000000, // not required
-                        gas: 300000, // 274633
-                    })
+            await MSI.connectWallet()
+            const value = await CoreContractInstance.methods
+            .payUnit()
+            .call({
+                from: MSI.wallet,
+            });
+            const resp = await CoreContractInstance
+            .methods.register(whose).send({
+                from: MSI.wallet,
+                value,
+                // gasLimit: 5000000, // not required
+                gas: 300000, // 274633
+            })
 
-                // todo: display resp in web interface
-                const msg = `
+            // todo: display resp in web interface
+            const msg = `
 registerWhose() method params:
 FROM: ${resp.from}
 TO: ${resp.to}
@@ -193,11 +197,8 @@ GAS: ${resp.gasUsed}
 TX: ${resp.transactionHash}
 
 `
-                throwAlert('success', msg)
+            throwAlert('success', msg)
 
-            } catch (e) {
-                throwAlert('danger', e.message)
-            }
 
         } catch (e) {
             throwAlert('danger', e.message)
@@ -217,11 +218,11 @@ TX: ${resp.transactionHash}
             try {
                 await MSI.connectWallet()
                 const resp = await CoreContractInstance.methods
-                    .withdrawClaim(MSI.web3.utils.toWei(amount, "ether"))
-                    .send({
-                        from: MSI.wallet,
-                        // gasLimit: 210000, // not required
-                    });
+                .withdrawClaim(MSI.web3.utils.toWei(amount, "ether"))
+                .send({
+                    from: MSI.wallet,
+                    // gasLimit: 210000, // not required
+                });
 
                 console.log(resp)
 
@@ -295,28 +296,28 @@ TX: ${resp.transactionHash}
             console.log(MSI.web3.handleRevert)
 
             const resp = await CoreContractInstance.methods
-                .getTenPercentOnceYear()
-                // .call()
-                .send({
+            .getTenPercentOnceYear()
+              // .call()
+              .send({
                     from: MSI.wallet,
                     gasLimit: 210000, // not required
                 }
-                  // ,(err, tx) => {
-                  //     if (tx){
-                  //         console.log("it's ok")
-                  //     }
-                  //     if (err) {
-                  //         console.log(err)
-                  //     }
-                  // }
+                // ,(err, tx) => {
+                //     if (tx){
+                //         console.log("it's ok")
+                //     }
+                //     if (err) {
+                //         console.log(err)
+                //     }
+                // }
 
-                )
-                // .catch(e => console.log('1084:', e))
-                // .on('error', (err, receipt) => {
-                //     console.log("err.message =",err.message);
-                //     console.log("receipt =", receipt);
-                // });
-              // .catch(revertReason => console.log({ revertReason }))
+              )
+            // .catch(e => console.log('1084:', e))
+            // .on('error', (err, receipt) => {
+            //     console.log("err.message =",err.message);
+            //     console.log("receipt =", receipt);
+            // });
+            // .catch(revertReason => console.log({ revertReason }))
 
             console.dir(resp);
             // console.dir(MSI.web3.utils.fromWei(resp, "ether"))
@@ -324,25 +325,7 @@ TX: ${resp.transactionHash}
             throwAlert('success', resp)
 
         } catch (e) {
-            // console.error('in 1')
-            console.log(e.message)
-
-            // const msg = e.message.match(/Error:(.+)"/)
-            // console.log(msg)
-
-            const msg = e.message.match(/transaction:\s(.+?)"/)[1]
-
-            console.log("msg:", msg)
-            // todo: here parsing insert
-
-            throwAlert('danger', msg)
-
-            // const data = e.data;
-            // const txHash = Object.keys(data)[0];
-            // const reason = data[txHash].reason;
-            //
-            // console.log(reason);
-
+            throwAlert('danger', e.message)
         } finally {
             emitDisabled(`withdrawTen`, false)
         }
@@ -353,11 +336,11 @@ TX: ${resp.transactionHash}
             emitDisabled(`getCoreUser`, true)
             await MSI.connectWallet()
             const resp = await CoreContractInstance
-                .methods.getUserFromCore(userWallet)
-                .call({
-                    from: MSI.wallet,
-                    // to: new Config().CONTRACT_ADDRESS,
-                })
+            .methods.getUserFromCore(userWallet)
+            .call({
+                from: MSI.wallet,
+                // to: new Config().CONTRACT_ADDRESS,
+            })
 
             // display resp in web interface
             let msg
@@ -384,21 +367,20 @@ whose: ${resp.whose}
     const getMatrixUser = async (level, userWallet) => {
         try {
             emitDisabled(`getMatrixUser`, true)
-            try {
-                await MSI.connectWallet()
-                const resp = await CoreContractInstance
-                    .methods.getUserFromMatrix(level, userWallet)
-                    .call({
-                        from: MSI.wallet,
-                        to: new Config().CONTRACT_ADDRESS,
-                    })
+            await MSI.connectWallet()
+            const resp = await CoreContractInstance
+            .methods.getUserFromMatrix(level, userWallet)
+            .call({
+                from: MSI.wallet,
+                to: new Config().CONTRACT_ADDRESS,
+            })
 
-                // todo: display resp in web interface
-                let msg
-                if (!resp.isValue) {
-                    msg = `user ${userWallet} is not registered`
-                } else {
-                    msg = `
+            // todo: display resp in web interface
+            let msg
+            if (!resp.isValue) {
+                msg = `user ${userWallet} is not registered`
+            } else {
+                msg = `
 getMatrixUser() method response:
 number: ${resp.index}
 parent: ${resp.parent}
@@ -406,13 +388,9 @@ isRight: ${resp.isRight}
 plateau: ${resp.plateau}
 
 `
-                }
-                throwAlert('primary', msg)
-
-
-            } catch (e) {
-                throwAlert('danger', e.message)
             }
+            throwAlert('primary', msg)
+
 
         } catch (e) {
             throwAlert('danger', e.message)
