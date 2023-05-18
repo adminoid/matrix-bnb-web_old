@@ -188,20 +188,22 @@
 
 // import {reactive} from "#imports";
 
+import { Blockchain } from '~/libs/blockchain'
+
 // const errorTimeout = 5000
 export default defineComponent({
   setup() {
-    const { $on, $SC } = useNuxtApp()
-    // const error = ref('')
+    const { $on } = useNuxtApp()
+
     let disabled = ref({})
     const registerWhoseAddr = ref('')
     const sendBnbAmount = ref('')
     const withdrawClaimAmount = ref('')
 
     const userCoreAddress = ref('')
-    const getCoreUser = async () => {
-      await $SC.getCoreUser(userCoreAddress.value)
-    }
+    // const getCoreUser = async () => {
+    //   await $SC.getCoreUser(userCoreAddress.value)
+    // }
 
     const userMatrixLevel = ref('')
     const userMatrixAddress = ref('')
@@ -300,7 +302,7 @@ export default defineComponent({
       sendBnb,
       sendBnbAmount,
       userCoreAddress,
-      getCoreUser,
+      getCoreUser: Blockchain.getCoreUser(),
       userMatrixAddress,
       userMatrixLevel,
       getMatrixUser,
